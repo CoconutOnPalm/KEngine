@@ -1,19 +1,19 @@
-#ifndef GRAPHICS_HPP_INCLUDED
-#define GRAPHICS_HPP_INCLUDED
+#pragma once
 
 namespace KEngine { // magical key to this file
     class Graphics { };
 }
 
+
 //
-//  FROM DEV                                            02.10.2020
+//  FROM DEV                              02.10.2020 and 18.02.2020
 //  Hi, if you're using this piece of... (you know :) ) I'd like to
 //  congratulate you your courage, you wisdom and your free time.
 //  Why are you using this lib, I have no idea. Here I'm saying
 //  sorry for my bad England, my funny functions (like isInvaded)
-//  and my really bad documentation. I've just turned 16 and if
-//  you magically find where I live, please don't kill me, I'm
-//  not worth your time, just forget it.
+//  and my really bad documentation. I'm still older than your dck 
+//  size and if you ever magically find where I live, please don't
+//  kill me, I'mnot worth your time, just forget it...
 //   Sincerely
 //  CoconutOnPalm
 //
@@ -38,13 +38,13 @@ namespace KEngine { // magical key to this file
 //
 //     * GuiObject:
 //
-//      - Rectangle
+//      - Rectangle					+ Physics
 //
-//      - Circle
+//      - Circle					+ Physics
 //
-//      - Triangle (60, 60, 60)
+//      - Triangle (60, 60, 60)		+ Physics
 //
-//      - Button
+//      - Button					+ Physics
 //
 //      - Curved Button
 //
@@ -62,17 +62,23 @@ namespace KEngine { // magical key to this file
 //
 //     * Protect (simple encryption)
 //
+//	   * Simple debugging with console
+//
+//	   * Clock
+//
+//	   * 4D vector
+//
+//	   * Color
+//
 //     * Random number generator
 //
 //     * Playlist
 //
 //     * Sound Effects
 //
-//  6. Have a nice day loooser
+//  6. Have a nice day L00oser
 //
 
-
-#include <SFML/Graphics.hpp>
 
 #include "Objects/ObjectParent.hpp"
 #include "Objects/Rectangle.hpp"
@@ -85,18 +91,4 @@ namespace KEngine { // magical key to this file
 #include "Objects/DropdownList.hpp"
 #include "Objects/Slider.hpp"
 
-// if something goes wrong you can uncomment it
-//class Object;
-//class ke::Rectangle;
-//class ke::Circle;
-//class ke::EquilTraingle;
-//class ke::Button;
-//class ke::CurvedButton;
-//class ke::PercentageBar;
-//class ke::PointBar;
-//class ke::Switch;
-//class ke::InputButton;
-//class ke::DropdownList;
-//class ke::Slider;
-
-#endif // GRAPHICS_HPP_INCLUDED
+// + algotithms
