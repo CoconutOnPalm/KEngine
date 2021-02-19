@@ -2,114 +2,97 @@
 
 namespace ke
 {
+	namespace protect
+	{
 
-Protect& Protect::Get()
-{
-    ///returns instance of KEngine Protect class
+		std::string Encrypt(const std::string& decoded)
+		{
+			int shift_val = Random::Int(1, 128);
 
-    static Protect instance;
-    return instance;
-}
+			std::string encrypted;
+			encrypted += shift_val;
 
+			for (unsigned int i = 0; i < decoded.size(); i++)
+				encrypted += (decoded[i] + shift_val);
 
-//////////
+			return encrypted;
+		}
 
+		std::string Decode(const std::string& encrypted)
+		{
+			int shift_val = encrypted.front();
 
-std::string Protect::Encrypt(const std::string& decoded)
-{
-    ///Encrypts given string
+			std::string decoded;
 
-    int shift_val = Random::Int(1, 128);
+			for (unsigned int i = 1; i < encrypted.size(); i++)
+				decoded += (encrypted[i] - shift_val);
 
-    std::string encrypted;
-    encrypted += shift_val;
-
-    for (int i = 0; i < decoded.size(); i++)
-        encrypted += (decoded[i] + shift_val);
-
-    return encrypted;
-}
-
-std::string Protect::Decode(const std::string& encrypted)
-{
-    ///decodes encrypted string
-
-    int shift_val = encrypted.front();
-
-    std::string decoded;
-
-    for (int i = 1; i < encrypted.size(); i++)
-        decoded += (encrypted[i] - shift_val);
-
-    return decoded;
-}
+			return decoded;
+		}
 
 
-std::wstring Protect::Encrypt(const std::wstring& decoded)
-{
-    ///Encrypts given string
-
-    int shift_val = Random::Int(1, 128);
-
-    std::wstring encrypted;
-    encrypted += to_wstring(shift_val);
-
-    for (int i = 0; i < decoded.size(); i++)
-        encrypted += (decoded[i] + shift_val);
-
-    return encrypted;
-}
-
-std::wstring Protect::Decode(const std::wstring& encrypted)
-{
-    ///decodes encrypted string
-
-    int shift_val = encrypted.front();
-
-    std::wstring decoded;
-
-    for (int i = 1; i < encrypted.size(); i++)
-        decoded += (encrypted[i] - shift_val);
-
-    return decoded;
-}
+		////////////////////////////////
 
 
+		std::string CustomEncrypt(const std::string& decoded, int key)
+		{
+			std::string encrypted;
 
-std::wstring stow(const std::string& str)
-{
-    ///std::string to std::wstring
+			for (unsigned int i = 0; i < decoded.size(); i++)
+				encrypted += (decoded[i] + key);
 
-    std::wstring temp(str.begin(), str.end());
-    return temp;
-}
+			return encrypted;
+		}
 
+		std::string CustomDecode(const std::string& encrypted, int key)
+		{
+			std::string decoded;
 
-void throw_error(const std::string& function_name, const std::string& message, const std::string& error_type)
-{
-    /** \brief throws error tu console using std::cout
-     *
-     * \param function_name     name of the function where error happened
-     * \param message           error message
-     * \param error_type        custom error type
-     * \return void
-     *
-     */
+			for (unsigned int i = 0; i < encrypted.size(); i++)
+				decoded += (encrypted[i] - key);
 
-
-    std::cout << error_type << " in [" << function_name << "]: " << message << '\n';
-}
+			return decoded;
+		}
 
 
-float RTD(float radians)
-{
-    return radians * (180 / PI);
-}
-
-float DTR(float degrees)
-{
-    return degrees * (PI / 180);
-}
+		////////////////////////////////
 
 
-}
+		std::string AdvancedCustomEncrypt(const std::string& decoded, std::string key)
+		{
+			int key_start_size = key.size();
+			for (int i = 0; key.size() < decoded.size(); i++)
+			{
+				if (i >= key_start_size) i = 0;
+				key += key[i];
+			}
+
+			std::string encrypted;
+
+			for (unsigned int i = 0; i < decoded.size(); i++)
+				encrypted += (decoded[i] + key[i] - '0');
+
+			return encrypted;
+		}
+
+
+		std::string AdvancedCustomDecode(const std::string& encrypted, std::string key)
+		{
+			int key_start_size = key.size();
+			for (int i = 0; key.size() < encrypted.size(); i++)
+			{
+				if (i >= key_start_size) i = 0;
+				key += key[i];
+			}
+
+			std::string decoded;
+
+			for (unsigned int i = 0; i < encrypted.size(); i++)
+				decoded += (encrypted[i] - key[i] + '0');
+
+			return decoded;
+		}
+
+	} // namespace protect
+
+} // namespace ke
