@@ -3,145 +3,185 @@
 namespace ke
 {
 
-Playlist::Playlist()
-{
-    ///KEngine Playlist constructor
-    /** KEngine Playlist is a class that stores file names to music files
-        and plays it automatically with its update() function*/
-}
+	Playlist::Playlist()
+	{
 
-Playlist::~Playlist()
-{
-    ///KEngine Playlist destructor
-    /** KEngine Playlist is a class that stores file names to music files
-        and plays it automatically with its update() function*/
-
-    music.stop();
-}
+	}
 
 
-void Playlist::addSong(const std::string& filename)
-{
-    ///adds new song to the playlist
-
-    filenames.push_back(filename);
-    current_playing = filenames.begin();
-    music.setVolume(100);
-}
-
-void Playlist::play()
-{
-    ///manually starts playing the playlist
-
-    if (!music.openFromFile(*current_playing))
-        return;
-    music.play();
-}
-
-void Playlist::pause()
-{
-    ///pauses the playlist
-
-    music.pause();
-}
-
-void Playlist::resume()
-{
-    ///resumes paused playlist
-
-    if (music.getStatus() == sf::Music::Paused)
-        music.play();
-}
-
-void Playlist::restart()
-{
-    ///restarts the current song
-
-    music.stop();
-}
-
-void Playlist::reset()
-{
-    ///plays the playlist form the beginning (Playlist::play to play)
-
-    music.stop();
-    current_playing = filenames.begin();
-}
+	Playlist::Playlist(float volume)
+	{
+		m_music.setVolume(volume);
+	}
 
 
-void Playlist::update()
-{
-    ///updates playlist, use to achieve automated track change
-
-    if (music.getStatus() != sf::Music::Playing && music.getStatus() != sf::Music::Paused)
-        this->skip();
-}
+	Playlist::~Playlist()
+	{
+		m_music.stop();
+	}
 
 
-void Playlist::skip()
-{
-    if (current_playing + 1 != filenames.end())
-            current_playing++;
-        else
-            current_playing = filenames.begin();
-
-    this->play();
-}
-
-void Playlist::playPrevious()
-{
-    if (current_playing != filenames.begin())
-            current_playing--;
-        else
-            current_playing = filenames.end() - 1;
-
-    this->play();
-}
+	////////////////////////////////
 
 
-void Playlist::setVolume(float volume)
-{
-    ///sets music volume
+	void Playlist::addSong(const std::string& filename)
+	{
+		m_filenames.push_back(filename);
 
-    music.setVolume(volume);
-}
-
-void Playlist::setPitch(float pitch)
-{
-    ///sets music pitch
-
-    music.setPitch(pitch);
-}
+		m_current_playing = m_filenames.begin();
+	}
 
 
-void Playlist::shuffle()
-{
-    ///randomly changes the order of the songs
 
-    int n = 0;
-
-    for (auto& i : filenames)
-    {
-        int r = ke::Random::Int(n, filenames.size() - 1);
-        swap(i, filenames[r]);
-        n++;
-    }
-}
+	////////////////////////////////////////////////////////////////
 
 
-sf::Music* Playlist::getMusic()
-{
-    ///returns SFML music class
 
-    return &music;
-}
+	void Playlist::play()
+	{
+		if (!m_music.openFromFile(*m_current_playing))
+		{
+			throw_error("Playlist::play()", "could not open music file", "ERROR");
+			return;
+		}
 
-std::vector<std::string>* Playlist::getFilenames()
-{
-    ///returns vector of music filenames;
-
-    return &filenames;
-}
+		m_music.play();
+	}
 
 
-}
+	////////////////////////////////
+
+
+	void Playlist::pause()
+	{
+		m_music.pause();
+	}
+
+
+	////////////////////////////////
+
+
+	void Playlist::resume()
+	{
+		if (m_music.getStatus() == sf::Music::Paused)
+			m_music.play();
+	}
+
+
+	////////////////////////////////
+
+
+	void Playlist::restart()
+	{
+		m_music.stop();
+
+		this->play();
+	}
+
+
+	////////////////////////////////
+
+
+	void Playlist::reset()
+	{
+		m_music.stop();
+		m_current_playing = m_filenames.begin();
+	}
+
+
+	////////////////////////////////
+
+
+	void Playlist::update()
+	{
+		if (m_music.getStatus() != sf::Music::Playing && m_music.getStatus() != sf::Music::Paused)
+			this->skip();
+	}
+
+
+	////////////////////////////////
+
+
+	void Playlist::skip()
+	{
+		if (m_current_playing + 1 != m_filenames.end())
+			m_current_playing++;
+		else
+			m_current_playing = m_filenames.begin();
+
+		this->play();
+	}
+
+
+	////////////////////////////////
+
+
+	bool Playlist::playing() const
+	{
+		return m_music.getStatus() == sf::Music::Playing;
+	}
+
+
+	////////////////////////////////
+
+
+	void Playlist::playPrevious()
+	{
+		if (m_current_playing != m_filenames.begin())
+			m_current_playing--;
+		else
+			m_current_playing = m_filenames.end() - 1;
+
+		this->play();
+	}
+
+
+	////////////////////////////////
+
+
+	void Playlist::setVolume(float volume)
+	{
+		m_music.setVolume(volume);
+	}
+
+
+	////////////////////////////////
+
+
+	void Playlist::setPitch(float pitch)
+	{
+		m_music.setPitch(pitch);
+	}
+
+
+	////////////////////////////////
+
+
+	void Playlist::shuffle()
+	{
+		int n = 0;
+
+		for (auto& i : m_filenames)
+		{
+			int r = ke::Random::Int(n, m_filenames.size() - 1);
+			swap(i, m_filenames[r]);
+			n++;
+		}
+	}
+
+
+	////////////////////////////////
+
+
+	sf::Music* Playlist::getMusic()
+	{
+		return &m_music;
+	}
+
+
+	std::vector<std::string>* Playlist::getFilenames()
+	{
+		return &m_filenames;
+	}
+
+} // namespace ke

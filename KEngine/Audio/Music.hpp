@@ -1,52 +1,174 @@
-#ifndef MUSIC_HPP_INCLUDED
-#define MUSIC_HPP_INCLUDED
+#pragma once
 
 #include "SFML/Audio.hpp"
 #include "../Algorithms/RandomGenerator.hpp"
 
-#include <iostream>
-#include <cstdlib>
 #include <vector>
+
 
 namespace ke
 {
 
-class Playlist
-{
-public:
+	/// <summary>
+	/// KEngine Playlist is an object that can hold multiple songs and play them in given order
+	/// </summary>
+	class Playlist
+	{
+	public:
 
-    Playlist();
-    ~Playlist();
+		/// <summary>
+		/// Playlist default constructor
+		/// </summary>
+		Playlist();
 
-    void addSong(const std::string& filename);
 
-    void play();
-    void pause();
-    void resume();
-    void restart();
-    void reset();
+		/// <summary>
+		/// Playlist constructor
+		/// </summary>
+		/// <param name="volume">playlist starting volume</param>
+		Playlist(float volume);
 
-    void update();
 
-    void skip();
-    void playPrevious();
+		/// <summary>
+		/// Playlist destructor
+		/// </summary>
+		~Playlist();
 
-    void setVolume(float volume);
-    void setPitch(float pitch);
 
-    void shuffle();
+		////////////////////////////////
 
-    sf::Music* getMusic();
-    std::vector<std::string>* getFilenames();
 
-private:
+		/// <summary>
+		/// adds song to the playlist
+		/// </summary>
+		/// <param name="filename">path to the song</param>
+		void addSong(const std::string& filename);
 
-    std::vector<std::string> filenames;
-    std::vector<std::string>::iterator current_playing;
 
-    sf::Music music;
-};
 
-}
+		////////////////////////////////////////////////////////////////
 
-#endif // MUSIC_HPP_INCLUDED
+
+
+		/// <summary>
+		/// starts playing song from the beggining
+		/// </summary>
+		void play();
+
+
+		/// <summary>
+		/// puses currently playing song
+		/// </summary>
+		void pause();
+
+
+		/// <summary>
+		/// resurmes paused song
+		/// </summary>
+		void resume();
+
+
+		////////////////////////////////
+
+
+		/// <summary>
+		/// restarts song to the begginging
+		/// </summary>
+		void restart();
+
+
+		/// <summary>
+		/// restarts playlist and selects the first song
+		/// </summary>
+		void reset();
+
+
+		////////////////////////////////
+
+
+		/// <summary>
+		/// skips currnently playing song
+		/// </summary>
+		void skip();
+
+
+		/// <summary>
+		/// plays previous song
+		/// </summary>
+		void playPrevious();
+
+
+		////////////////////////////////
+
+
+		/// <summary>
+		/// is music playing right now>
+		/// </summary>
+		/// <returns></returns>
+		bool playing() const;
+
+
+		////////////////////////////////
+
+
+		/// <summary>
+		/// controls automatic playlist playing
+		/// </summary>
+		void update();
+
+
+		////////////////////////////////
+
+
+		/// <summary>
+		/// sets playlist volume
+		/// </summary>
+		/// <param name="volume"></param>
+		void setVolume(float volume);
+
+
+		/// <summary>
+		/// sets playlist pitch
+		/// </summary>
+		/// <param name="pitch"></param>
+		void setPitch(float pitch);
+
+
+		////////////////////////////////
+
+
+		/// <summary>
+		/// randomly generates new song order
+		/// </summary>
+		void shuffle();
+
+
+
+		////////////////////////////////////////////////////////////////
+
+
+
+		/// <summary>
+		/// returns 
+		/// </summary>
+		/// <returns>SMFL Music</returns>
+		sf::Music* getMusic();
+
+
+		/// <summary>
+		/// returns song list
+		/// </summary>
+		/// <returns></returns>
+		std::vector<std::string>* getFilenames();
+
+
+
+	private:
+
+		std::vector<std::string> m_filenames;					// song list
+		std::vector<std::string>::iterator m_current_playing;	// currently playing song
+
+		sf::Music m_music; // SMFL music class
+	};
+
+} // namespace ke
