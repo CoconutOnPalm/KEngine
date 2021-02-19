@@ -4,1395 +4,1527 @@ namespace ke
 {
 
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//============== C O N S T R U C T O R S ,   D E S T R U C T O R S   A N D   O P E R A T O R S ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
-
-
-Circle::Circle()
-{
-    ///KEngine Circle default constructor
-    /** KEngine Circle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
-}
-
-
-Circle::Circle( float radius, const sf::Vector2f& position,
-                int origin,
-                const std::wstring& text,
-                unsigned int character_size,
-                int text_position,
-                const sf::Color& object_color,
-                const sf::Color& text_color,
-                float outline_thickness,
-                const sf::Color& outline_color,
-                unsigned int text_style,
-                const sf::Vector2f& text_shift,
-                int font,
-                bool active )
-{
-    ///KEngine Circle color constructor
-    /** KEngine Circle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
-
-
-    this->texture_path = "";
-    this->texture_on = false;
-
-    this->active = active;
-
-
-    this->origin = origin;
-    this->text_position = text_position;
-    this->text_shift = text_shift;
-
-
-    this->shape.setRadius(radius);
-    this->shape.setPosition(position);
-
-    this->updateShape();
-
-    this->shape.setFillColor(object_color);
-    this->shape.setOutlineColor(outline_color);
-    this->shape.setOutlineThickness(outline_thickness);
-
-
-
-    this->text.setCharacterSize(character_size);
-
-
-    switch(font)
-    {
-    case Arial:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-
-    case Arial_Uni:
-        {
-            this->text.setFont(arial_uni);
-            this->text_font = Arial_Uni;
-        }
-        break;
-
-    case Calibri:
-        {
-            this->text.setFont(calibri);
-            this->text_font = Calibri;
-        }
-        break;
-
-    case ComicSans:
-        {
-            this->text.setFont(comic_sans);
-            this->text_font = ComicSans;
-        }
-        break;
-
-    case CourierNew:
-        {
-            this->text.setFont(courier_new);
-            this->text_font = CourierNew;
-        }
-        break;
-
-    case TimesNewRoman:
-        {
-            this->text.setFont(times_new_roman);
-            this->text_font = TimesNewRoman;
-        }
-        break;
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//============== C O N S T R U C T O R S ,   D E S T R U C T O R S   A N D   O P E R A T O R S ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
+
+
+
+
+
+	Circle::Circle()
+		: m_origin(MIDDLE_MIDDLE)
+		, m_texture_path(Settings::EmptyTexturePath())
+		, m_texture_set(false)
+		, m_shapeCenter(0, 0)
+		, m_physics(nullptr)
+		, m_text_shift(0, 0)
+		, m_text_position(MIDDLE_MIDDLE)
+		, m_text_font(Arial)
+		, m_active(false)
+		, m_created(false)
+	{
+
+	}
+
+
+	////////////////////////////////
+
+
+	Circle::Circle(
+		float radius, 
+		const sf::Vector2f& position,
+		int origin,
+		const std::wstring& text,
+		unsigned int character_size,
+		int text_position,
+		const sf::Color& object_color,
+		const sf::Color& text_color,
+		float outline_thickness,
+		const sf::Color& outline_color,
+		float rotation,
+		unsigned int text_style,
+		const sf::Vector2f& text_shift,
+		int font,
+		bool active)
+
+		: m_texture_path(Settings::EmptyTexturePath())
+		, m_texture_set(false)
+		, m_origin(origin)
+		, m_text_position(text_position)
+		, m_text_shift(text_shift)
+		, m_physics(nullptr)
+		, m_active(active)
+		, m_created(true)
+	{
+		m_shape.setRadius(radius);
+		m_shape.setPosition(position);
+		m_shape.setRotation(rotation);
+
+		this->fullShapeUpdate();
+
+		m_shape.setFillColor(object_color);
+		m_shape.setOutlineColor(outline_color);
+		m_shape.setOutlineThickness(outline_thickness);
+
+
+		m_text.setCharacterSize(character_size);
+
+		this->fontUpdate(font);
+
+		m_text.setStyle(text_style);
+		m_text.setString(text);
+		m_text.setRotation(rotation);
 
-    case TrebuchetMS:
-        {
-            this->text.setFont(trebuchet_MS);
-            this->text_font = TrebuchetMS;
-        }
-        break;
+		this->fullTextUpdate();
 
-    case Verdana:
-        {
-            this->text.setFont(verdana);
-            this->text_font = Verdana;
-        }
-        break;
+		m_text.setFillColor(text_color);
+	}
 
-    default:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-    }
 
+	////////////////////////////////
 
 
-    this->text.setStyle(text_style);
-    this->text.setString(text);
+	Circle::Circle(
+		float radius,
+		const sf::Vector2f& position,
+		int origin,
+		const sf::Texture* texture,
+		float rotation,
+		bool active)
+
+		: m_origin(origin)
+		, m_text_position(MIDDLE_MIDDLE)
+		, m_text_shift(0, 0)
+		, m_physics(nullptr)
+		, m_active(active)
+		, m_created(true)
+	{
+		if (texture)
+		{
+			m_texture_path = Settings::UnknownTexturePathName();
+			m_texture = *texture;
+			m_texture_set = true;
+		}
+		else
+		{
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture.loadFromFile(m_texture_path);
+			m_texture_set = false;
+		}
 
-    this->updateText();
+		m_shape.setRadius(radius);
+		m_shape.setPosition(position);
+		m_shape.setRotation(rotation);
 
-    this->text.setColor(text_color);
-}
+		this->fullShapeUpdate();
 
-Circle::Circle( float radius,
-                const sf::Vector2f& position,
-                int origin,
-                const sf::Texture* texture,
-                bool active)
-{
-    ///KEngine Circle texture constructor <br>
-    /// texture loading from other texture
-    /** KEngine Circle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
+		m_shape.setTexture(&m_texture);
+		m_shape.setFillColor(Settings::DefaultTextureColor());
+	}
 
-    this->active = active;
-    this->texture_on = true;
-    this->texture_path = "";
-    if (texture) this->texture = *texture;
-    else this->texture.loadFromFile("");
 
+	////////////////////////////////
 
-    this->active = active;
 
+	Circle::Circle(
+		float radius,
+		const sf::Vector2f& position,
+		int origin,
+		const std::string& filename,
+		float rotation,
+		bool active)
 
-    this->origin = origin;
-    this->text_position = MIDDLE_MIDDLE;
-    this->text_shift = sf::Vector2f(0, 0);
+		: m_texture_path(filename)
+		, m_origin(origin)
+		, m_text_position(MIDDLE_MIDDLE)
+		, m_text_shift(0, 0)
+		, m_physics(nullptr)
+		, m_active(active)
+		, m_created(true)
+	{
+		m_texture_set = true;
 
+		if (!m_texture.loadFromFile(m_texture_path))
+		{
+			throw_error("Rectangle::Rectange(...)", "could not load texture from the given path", "ERROR");
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture.loadFromFile(m_texture_path);
+			m_texture_set = false;
+		}
 
-    this->shape.setRadius(radius);
-    this->shape.setPosition(position);
+		m_shape.setRadius(radius);
+		m_shape.setPosition(position);
+		m_shape.setRotation(rotation);
 
-    this->updateShape();
+		this->fullShapeUpdate();
 
-    this->shape.setTexture(&this->texture);
-    this->shape.setFillColor(sf::Color::Black);
-}
+		m_shape.setTexture(&m_texture);
+		m_shape.setFillColor(Settings::DefaultTextureColor());
+	}
 
-Circle::Circle( float radius,
-                const sf::Vector2f& position,
-                int origin,
-                const std::string& texture_path,
-                bool active)
-{
-    ///KEngine Circle texture constructor <br>
-    /// texture loading directly from file
-    /** KEngine Circle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
 
-    this->active = active;
-    this->texture_on = true;
-    this->texture_path = texture_path;
-    this->texture.loadFromFile(texture_path);
+	////////////////////////////////
 
 
-    this->active = active;
+	Circle::~Circle()
+	{
 
+	}
 
-    this->origin = origin;
-    this->text_position = MIDDLE_MIDDLE;
-    this->text_shift = sf::Vector2f(0, 0);
 
 
-    this->shape.setRadius(radius);
-    this->shape.setPosition(position);
+	////////////////////////////////////////////////////////////////
 
-    this->updateShape();
 
-    this->shape.setTexture(&this->texture);
-    this->shape.setFillColor(sf::Color::Black);
-}
 
-Circle::~Circle()
-{
-    ///KEngine Circle destructor
-    /** KEngine Circle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
-}
-
+	Circle::Circle(Circle& other)
+		: m_origin(other.getOrigin())
+		, m_text_position(other.getTextPosition())
+		, m_text_shift(other.getTextShift())
+		, m_active(other.isActive())
+		, m_created(true)
+	{
+		// checking if texture exists
+		if (other.isTextureSet())
+		{
+			m_texture_path = other.getTexturePath();
+			m_texture = *other.getTexture();
+			m_texture_set = true;
+			m_shape.setTexture(&m_texture);
+		}
+		else
+		{
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture_set = false;
+		}
 
 
-Circle::Circle(Circle& other)
-{
-    ///KEngine Circle copy constructor
-    /** KEngine Circle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
+		m_shape.setRadius(other.getRadius());
+		m_shape.setPosition(other.getPosition());
+		m_shape.setRotation(other.getRotation());
 
-    this->texture_path = "";
-    this->texture_on = false;
+		this->fullShapeUpdate();
 
-    this->active = other.isActive();
+		m_shape.setFillColor(other.getFillColor());
+		m_shape.setOutlineColor(other.getOutlineColor());
+		m_shape.setOutlineThickness(other.getOutlineThickness());
 
 
-    this->origin = other.getOrigin();
-    this->text_position = other.getTextPosition();
-    this->text_shift = other.getTextShift();
+		m_text.setCharacterSize(other.getCharacterSize());
 
+		this->fontUpdate(other.getFont());
 
-    this->shape.setRadius(other.getRadius());
-    this->shape.setPosition(other.getPosition());
+		m_text.setStyle(other.getTextStyle());
+		m_text.setString(other.getText());
+		m_text.setRotation(other.getRotation());
 
-    this->updateShape();
+		this->fullTextUpdate();
 
-    this->shape.setFillColor(other.getFillColor());
-    this->shape.setOutlineColor(other.getOutlineColor());
-    this->shape.setOutlineThickness(other.getOutlineThickness());
+		m_text.setFillColor(other.getTextColor());
 
 
+		if (other.physics()) // when physics exists
+		{
+			m_physics->setTarget(this);
 
-    this->text.setCharacterSize(other.getCharacterSize());
+			for (auto& i : *other.physics()->getForceList())
+				m_physics->addForce(i.first, i.second);
 
+			m_physics->setSpeed(other.physics()->getSpeed());
+			m_physics->setMass(other.physics()->getMass());
+			m_physics->setFriction(other.physics()->getFriction());
+		}
+	}
 
-    switch(other.getFont())
-    {
-    case Arial:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
 
-    case Arial_Uni:
-        {
-            this->text.setFont(arial_uni);
-            this->text_font = Arial_Uni;
-        }
-        break;
 
-    case Calibri:
-        {
-            this->text.setFont(calibri);
-            this->text_font = Calibri;
-        }
-        break;
+	////////////////////////////////////////////////////////////////
 
-    case ComicSans:
-        {
-            this->text.setFont(comic_sans);
-            this->text_font = ComicSans;
-        }
-        break;
 
-    case CourierNew:
-        {
-            this->text.setFont(courier_new);
-            this->text_font = CourierNew;
-        }
-        break;
 
-    case TimesNewRoman:
-        {
-            this->text.setFont(times_new_roman);
-            this->text_font = TimesNewRoman;
-        }
-        break;
+	Circle& Circle::operator= (Circle& other)
+	{
+		// checking if texture exists
+		if (other.isTextureSet())
+		{
+			m_texture_path = other.getTexturePath();
+			m_texture = *other.getTexture();
+			m_texture_set = true;
+			m_shape.setTexture(&m_texture);
+		}
+		else
+		{
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture_set = false;
+		}
 
-    case TrebuchetMS:
-        {
-            this->text.setFont(trebuchet_MS);
-            this->text_font = TrebuchetMS;
-        }
-        break;
 
-    case Verdana:
-        {
-            this->text.setFont(verdana);
-            this->text_font = Verdana;
-        }
-        break;
+		m_origin = other.getOrigin();
+		m_text_position = other.getTextPosition();
+		m_text_shift = other.getTextShift();
 
-    default:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-    }
 
+		m_shape.setRadius(other.getRadius());
+		m_shape.setPosition(other.getPosition());
+		m_shape.setRotation(other.getRotation());
 
+		this->fullShapeUpdate();
 
-    this->text.setStyle(other.getTextStyle());
-    this->text.setString(other.getText());
+		m_shape.setFillColor(other.getFillColor());
+		m_shape.setOutlineColor(other.getOutlineColor());
+		m_shape.setOutlineThickness(other.getOutlineThickness());
 
-    this->updateText();
 
-    this->text.setColor(other.getTextColor());
-}
+		m_text.setCharacterSize(other.getCharacterSize());
 
+		this->fontUpdate(other.getFont());
 
+		m_text.setStyle(other.getTextStyle());
+		m_text.setString(other.getText());
+		m_text.setRotation(other.getRotation());
 
-Circle& Circle::operator= (Circle& other)
-{
-    ///KEngine Circle operator =
-    /** KEngine Circle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
+		this->fullTextUpdate();
 
-    this->texture_path = "";
-    this->texture_on = false;
+		m_text.setFillColor(other.getTextColor());
 
-    this->active = other.isActive();
 
+		if (other.physics()) // when physics exists
+		{
+			m_physics->setTarget(this);
 
-    this->origin = other.getOrigin();
-    this->text_position = other.getTextPosition();
-    this->text_shift = other.getTextShift();
+			for (auto& i : *other.physics()->getForceList())
+				m_physics->addForce(i.first, i.second);
 
+			m_physics->setSpeed(other.physics()->getSpeed());
+			m_physics->setMass(other.physics()->getMass());
+			m_physics->setFriction(other.physics()->getFriction());
+		}
 
-    this->shape.setRadius(other.getRadius());
-    this->shape.setPosition(other.getPosition());
+		m_active = other.isActive();
+		m_created = true;
 
-    this->updateShape();
+		return *this;
+	}
 
-    this->shape.setFillColor(other.getFillColor());
-    this->shape.setOutlineColor(other.getOutlineColor());
-    this->shape.setOutlineThickness(other.getOutlineThickness());
 
 
+	////////////////////////////////////////////////////////////////
 
-    this->text.setCharacterSize(other.getCharacterSize());
 
 
-    switch(other.getFont())
-    {
-    case Arial:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
+	void Circle::create(
+		float radius,
+		const sf::Vector2f& position,
+		int origin,
+		const std::wstring& text,
+		unsigned int character_size,
+		int text_position,
+		const sf::Color& object_color,
+		const sf::Color& text_color,
+		float outline_thickness,
+		const sf::Color& outline_color,
+		float rotation,
+		unsigned int text_style,
+		const sf::Vector2f& text_shift,
+		int font,
+		bool active)
+	{
+		m_texture_path = Settings::EmptyTexturePath();
+		m_texture_set = false;
 
-    case Arial_Uni:
-        {
-            this->text.setFont(arial_uni);
-            this->text_font = Arial_Uni;
-        }
-        break;
+		m_origin = origin;
+		m_text_position = text_position;
+		m_text_shift = text_shift;
 
-    case Calibri:
-        {
-            this->text.setFont(calibri);
-            this->text_font = Calibri;
-        }
-        break;
 
-    case ComicSans:
-        {
-            this->text.setFont(comic_sans);
-            this->text_font = ComicSans;
-        }
-        break;
+		m_shape.setRadius(radius);
+		m_shape.setPosition(position);
+		m_shape.setRotation(rotation);
 
-    case CourierNew:
-        {
-            this->text.setFont(courier_new);
-            this->text_font = CourierNew;
-        }
-        break;
+		this->fullShapeUpdate();
 
-    case TimesNewRoman:
-        {
-            this->text.setFont(times_new_roman);
-            this->text_font = TimesNewRoman;
-        }
-        break;
+		m_shape.setFillColor(object_color);
+		m_shape.setOutlineColor(outline_color);
+		m_shape.setOutlineThickness(outline_thickness);
 
-    case TrebuchetMS:
-        {
-            this->text.setFont(trebuchet_MS);
-            this->text_font = TrebuchetMS;
-        }
-        break;
 
-    case Verdana:
-        {
-            this->text.setFont(verdana);
-            this->text_font = Verdana;
-        }
-        break;
+		m_text.setCharacterSize(character_size);
 
-    default:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-    }
+		this->fontUpdate(font);
 
+		m_text.setStyle(text_style);
+		m_text.setString(text);
+		m_text.setRotation(rotation);
 
+		this->fullTextUpdate();
 
-    this->text.setStyle(other.getTextStyle());
-    this->text.setString(other.getText());
+		m_text.setFillColor(text_color);
 
-    this->updateText();
+		m_active = active;
+		m_created = true;
+	}
 
-    this->text.setColor(other.getTextColor());
 
-    return *this;
-}
+	////////////////////////////////
 
 
+	void Circle::create(
+		float radius,
+		const sf::Vector2f& position,
+		int origin,
+		const sf::Texture* texture,
+		float rotation,
+		bool active)
+	{
+		// checking if texture exists
+		if (texture)
+		{
+			m_texture_path = Settings::UnknownTexturePathName();
+			m_texture = *texture;
+			m_texture_set = true;
+		}
+		else
+		{
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture.loadFromFile(m_texture_path);
+			m_texture_set = false;
+		}
 
-void Circle::create( float radius, const sf::Vector2f& position,
-                     int origin,
-                     const std::wstring& text,
-                     unsigned int character_size,
-                     int text_position,
-                     const sf::Color& object_color,
-                     const sf::Color& text_color,
-                     float outline_thickness,
-                     const sf::Color& outline_color,
-                     unsigned int text_style,
-                     const sf::Vector2f& text_shift,
-                     int font,
-                     bool active )
-{
-    ///KEngine Circle color create function <br>
-    ///use with default constructor
-    /** KEngine Circle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
+		m_origin = origin;
+		m_text_position = MIDDLE_MIDDLE;
+		m_text_shift = sf::Vector2f(0, 0);
 
 
-    this->texture_path = "";
-    this->texture_on = false;
+		m_shape.setRadius(radius);
+		m_shape.setPosition(position);
+		m_shape.setRotation(rotation);
 
-    this->active = active;
+		this->fullShapeUpdate();
 
+		m_shape.setTexture(&m_texture);
+		m_shape.setFillColor(Settings::DefaultTextureColor());
 
-    this->origin = origin;
-    this->text_position = text_position;
-    this->text_shift = text_shift;
+		m_active = active;
+		m_created = true;
+	}
 
 
-    this->shape.setRadius(radius);
-    this->shape.setPosition(position);
+	////////////////////////////////
 
-    this->updateShape();
 
-    this->shape.setFillColor(object_color);
-    this->shape.setOutlineColor(outline_color);
-    this->shape.setOutlineThickness(outline_thickness);
+	void Circle::create(
+		float radius,
+		const sf::Vector2f& position,
+		int origin,
+		const std::string& filename,
+		float rotation,
+		bool active)
+	{
+		m_texture_path = filename;
+		m_texture_set = true;
 
+		if (!m_texture.loadFromFile(m_texture_path))
+		{
+			throw_error("Rectangle::Rectange(...)", "could not load texture from the given path", "ERROR");
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture.loadFromFile(m_texture_path);
+			m_texture_set = false;
+		}
 
 
-    this->text.setCharacterSize(character_size);
+		m_origin = origin;
+		m_text_position = MIDDLE_MIDDLE;
+		m_text_shift = sf::Vector2f(0, 0);
 
 
-    switch(font)
-    {
-    case Arial:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
+		m_shape.setRadius(radius);
+		m_shape.setPosition(position);
+		m_shape.setRotation(rotation);
 
-    case Arial_Uni:
-        {
-            this->text.setFont(arial_uni);
-            this->text_font = Arial_Uni;
-        }
-        break;
+		this->fullShapeUpdate();
 
-    case Calibri:
-        {
-            this->text.setFont(calibri);
-            this->text_font = Calibri;
-        }
-        break;
+		m_shape.setTexture(&m_texture);
+		m_shape.setFillColor(Settings::DefaultTextureColor());
 
-    case ComicSans:
-        {
-            this->text.setFont(comic_sans);
-            this->text_font = ComicSans;
-        }
-        break;
+		m_active = active;
+		m_created = true;
+	}
 
-    case CourierNew:
-        {
-            this->text.setFont(courier_new);
-            this->text_font = CourierNew;
-        }
-        break;
 
-    case TimesNewRoman:
-        {
-            this->text.setFont(times_new_roman);
-            this->text_font = TimesNewRoman;
-        }
-        break;
 
-    case TrebuchetMS:
-        {
-            this->text.setFont(trebuchet_MS);
-            this->text_font = TrebuchetMS;
-        }
-        break;
 
-    case Verdana:
-        {
-            this->text.setFont(verdana);
-            this->text_font = Verdana;
-        }
-        break;
 
-    default:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-    }
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============                       P R I V A T E   F U N C T I O N S                       ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
 
 
 
-    this->text.setStyle(text_style);
-    this->text.setString(text);
 
-    this->updateText();
 
-    this->text.setColor(text_color);
-}
+	void Circle::shapeUpdate()
+	{
+		switch (m_origin)
+		{
+		case LEFT_TOP:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x + m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y + m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
 
+		case MIDDLE_TOP:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x, m_shape.getPosition().y + m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
 
-void Circle::create( float radius,
-                     const sf::Vector2f& position,
-                     int origin,
-                     const sf::Texture* texture,
-                     bool active)
-{
-    ///KEngine Circle texture create function <br>
-    ///use with default constructor <br>
-    /// texture loading from other texture
-    /** KEngine Circle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
+		case RIGHT_TOP:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x - m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y + m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
 
-    this->active = active;
-    this->texture_on = true;
-    this->texture_path = "";
-    if (texture) this->texture = *texture;
-    else this->texture.loadFromFile("");
+		case LEFT_MIDDLE:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x + m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y);
+		}
+		break;
 
+		case MIDDLE_MIDDLE:
+		{
+			m_shapeCenter = m_shape.getPosition();
+		}
+		break;
 
-    this->active = active;
+		case RIGHT_MIDDLE:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x - m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y);
+		}
+		break;
 
+		case LEFT_BOTTOM:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x + m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y - m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
 
-    this->origin = origin;
-    this->text_position = MIDDLE_MIDDLE;
-    this->text_shift = sf::Vector2f(0, 0);
+		case MIDDLE_BOTTOM:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x, m_shape.getPosition().y - m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
 
+		case RIGHT_BOTTOM:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x - m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y - m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
 
-    this->shape.setRadius(radius);
-    this->shape.setPosition(position);
+		default:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x + m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y + m_shape.getRadius() * m_shape.getScale().y);
+			throw_error("Circle::shapeUpdate()", "Given shape origin is incorrect", "ERROR");
+		}
+		break;
+		}
+	}
 
-    this->updateShape();
 
-    this->shape.setTexture(&this->texture);
-    this->shape.setFillColor(sf::Color::Black);
-}
+	////////////////////////////////
 
 
-void Circle::create( float radius,
-                     const sf::Vector2f& position,
-                     int origin,
-                     const std::string& texture_path,
-                     bool active)
-{
-    ///KEngine Circle texture create function <br>
-    ///use with default constructor <br>
-    /// texture loading directly from file
-    /** KEngine Circle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
+	void Circle::fullShapeUpdate()
+	{
+		switch (m_origin)
+		{
+		case LEFT_TOP:
+		{
+			m_shape.setOrigin(sf::Vector2f(0, 0));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x + m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y + m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
 
-    this->active = active;
-    this->texture_on = true;
-    this->texture_path = texture_path;
-    this->texture.loadFromFile(texture_path);
+		case MIDDLE_TOP:
+		{
+			m_shape.setOrigin(sf::Vector2f(m_shape.getRadius(), 0));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x, m_shape.getPosition().y + m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
 
+		case RIGHT_TOP:
+		{
+			m_shape.setOrigin(sf::Vector2f(m_shape.getRadius() * 2, 0));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x - m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y + m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
 
-    this->active = active;
+		case LEFT_MIDDLE:
+		{
+			m_shape.setOrigin(sf::Vector2f(0, m_shape.getRadius()));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x + m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y);
+		}
+		break;
 
+		case MIDDLE_MIDDLE:
+		{
+			m_shape.setOrigin(sf::Vector2f(m_shape.getRadius(), m_shape.getRadius()));
+			m_shapeCenter = m_shape.getPosition();
+		}
+		break;
 
-    this->origin = origin;
-    this->text_position = MIDDLE_MIDDLE;
-    this->text_shift = sf::Vector2f(0, 0);
+		case RIGHT_MIDDLE:
+		{
+			m_shape.setOrigin(sf::Vector2f(m_shape.getRadius() * 2, m_shape.getRadius()));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x - m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y);
+		}
+		break;
 
+		case LEFT_BOTTOM:
+		{
+			m_shape.setOrigin(sf::Vector2f(0, m_shape.getRadius() * 2));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x + m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y - m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
 
-    this->shape.setRadius(radius);
-    this->shape.setPosition(position);
+		case MIDDLE_BOTTOM:
+		{
+			m_shape.setOrigin(sf::Vector2f(m_shape.getRadius(), m_shape.getRadius() * 2));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x, m_shape.getPosition().y - m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
 
-    this->updateShape();
+		case RIGHT_BOTTOM:
+		{
+			m_shape.setOrigin(sf::Vector2f(m_shape.getRadius() * 2, m_shape.getRadius() * 2));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x - m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y - m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
 
-    this->shape.setTexture(&this->texture);
-    this->shape.setFillColor(sf::Color::Black);
-}
+		default:
+		{
+			m_shape.setOrigin(sf::Vector2f(0, 0));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x + m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y + m_shape.getRadius() * m_shape.getScale().y);
+			throw_error("Circle::fullShapeUpdate()", "Given shape origin is incorrect", "ERROR");
+		}
+		break;
+		}
+	}
 
 
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============                       P R I V A T E   F U N C T I O N S                       ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
+	////////////////////////////////////////////////////////////////
 
-
-
-void Circle::updateShape()
-{
-    ///KEngine Circle private function used automatically
-
-    switch(this->origin)
-    {
-    case LEFT_TOP:
-        {
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x + this->shape.getRadius(), this->shape.getPosition().y + this->shape.getRadius());
-        }
-        break;
-
-    case MIDDLE_TOP:
-        {
-            this->shape.setOrigin(sf::Vector2f(this->shape.getRadius(), 0));
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x, this->shape.getPosition().y + this->shape.getRadius());
-        }
-        break;
-
-    case RIGHT_TOP:
-        {
-            this->shape.setOrigin(sf::Vector2f(this->shape.getRadius() * 2, 0));
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x - this->shape.getRadius(), this->shape.getPosition().y + this->shape.getRadius());
-        }
-        break;
-
-    case LEFT_MIDDLE:
-        {
-            this->shape.setOrigin(sf::Vector2f(0, this->shape.getRadius()));
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x + this->shape.getRadius(), this->shape.getPosition().y);
-        }
-        break;
-
-    case MIDDLE_MIDDLE:
-        {
-            this->shape.setOrigin(sf::Vector2f(this->shape.getRadius(), this->shape.getRadius()));
-            this->shapeCentre = this->shape.getPosition();
-        }
-        break;
-
-    case RIGHT_MIDDLE:
-        {
-            this->shape.setOrigin(sf::Vector2f(this->shape.getRadius() * 2, this->shape.getRadius()));
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x - this->shape.getRadius(), this->shape.getPosition().y);
-        }
-        break;
-
-    case LEFT_BOTTOM:
-        {
-            this->shape.setOrigin(sf::Vector2f(0, this->shape.getRadius() * 2));
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x + this->shape.getRadius(), this->shape.getPosition().y - this->shape.getRadius());
-        }
-        break;
-
-    case MIDDLE_BOTTOM:
-        {
-            this->shape.setOrigin(sf::Vector2f(this->shape.getRadius(), this->shape.getRadius() * 2));
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x, this->shape.getPosition().y - this->shape.getRadius());
-        }
-        break;
-
-    case RIGHT_BOTTOM:
-        {
-            this->shape.setOrigin(sf::Vector2f(this->shape.getRadius() * 2, this->shape.getRadius() * 2));
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x - this->shape.getRadius(), this->shape.getPosition().y - this->shape.getRadius());
-        }
-        break;
 
-    default:
-        {
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x + this->shape.getRadius(), this->shape.getPosition().y + this->shape.getRadius());
-        }
-        break;
-    }
-}
 
+	void Circle::textUpdate()
+	{
+		switch (m_text_position)
+		{
+		case MIDDLE_TOP:
+		{
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y - m_shape.getRadius() * m_shape.getScale().y + m_text_shift.y));
+		}
+		break;
 
-void Circle::updateText()
-{
-    ///KEngine Circle private function used automatically
+		case LEFT_MIDDLE:
+		{
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x - m_shape.getRadius() * m_shape.getScale().x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+		}
+		break;
 
-    switch(this->text_position)
-    {
-    case MIDDLE_TOP:
-        {
-            this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y - this->shape.getRadius() + text_shift.y));
-        }
-        break;
+		case MIDDLE_MIDDLE:
+		{
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+		}
+		break;
 
-    case LEFT_MIDDLE:
-        {
-            this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x - this->shape.getRadius() + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
+		case RIGHT_MIDDLE:
+		{
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_shape.getRadius() * m_shape.getScale().x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+		}
+		break;
+
+		case MIDDLE_BOTTOM:
+		{
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_shape.getRadius() * m_shape.getScale().y + m_text_shift.y));
+		}
+		break;
+
+		default:
+		{
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			throw_error("Circle::textUpdate()", "Given text position is incorrect", "ERROR");
+		}
+		break;
+		}
+	}
+
+
+	////////////////////////////////
+
+
+	void Circle::fullTextUpdate()
+	{
+		switch (m_text_position)
+		{
+		case MIDDLE_TOP:
+		{
+			m_text.setOrigin(sf::Vector2f(m_text.getLocalBounds().left + m_text.getLocalBounds().width / 2, m_text.getLocalBounds().top));
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y - m_shape.getRadius() * m_shape.getScale().y + m_text_shift.y));
+		}
+		break;
+
+		case LEFT_MIDDLE:
+		{
+			m_text.setOrigin(sf::Vector2f(m_text.getLocalBounds().left, m_text.getLocalBounds().top + m_text.getLocalBounds().height / 2));
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x - m_shape.getRadius() * m_shape.getScale().x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+		}
+		break;
+
+		case MIDDLE_MIDDLE:
+		{
+			m_text.setOrigin(sf::Vector2f(m_text.getLocalBounds().left + m_text.getLocalBounds().width / 2, m_text.getLocalBounds().top + m_text.getLocalBounds().height / 2));
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+		}
+		break;
+
+		case RIGHT_MIDDLE:
+		{
+			m_text.setOrigin(sf::Vector2f(m_text.getLocalBounds().left + m_text.getLocalBounds().width, m_text.getLocalBounds().top + m_text.getLocalBounds().height / 2));
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_shape.getRadius() * m_shape.getScale().x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+		}
+		break;
+
+		case MIDDLE_BOTTOM:
+		{
+			m_text.setOrigin(sf::Vector2f(m_text.getLocalBounds().left + m_text.getLocalBounds().width / 2, m_text.getLocalBounds().top + m_text.getLocalBounds().height));
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_shape.getRadius() * m_shape.getScale().y + m_text_shift.y));
+		}
+		break;
+
+		default:
+		{
+			m_text.setOrigin(sf::Vector2f(m_text.getLocalBounds().left + m_text.getLocalBounds().width / 2, m_text.getLocalBounds().top + m_text.getLocalBounds().height / 2));
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			throw_error("Circle::fullTextUpdate()", "Given text position is incorrect", "ERROR");
+		}
+		break;
+		}
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Circle::fontUpdate(int font)
+	{
+		switch (font)
+		{
+		case Arial:
+		{
+			if (s_arial_status)
+			{
+				m_text.setFont(f_arial);
+				m_text_font = Arial;
+			}
+			else
+			{
+				throw_error("Circle::fontUpdate()", "Arial font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case Arial_Uni:
+		{
+			if (s_arial_uni_status)
+			{
+				m_text.setFont(f_arial_unicode);
+				m_text_font = Arial_Uni;
+			}
+			else
+			{
+				throw_error("Circle::fontUpdate()", "Arial Unicode font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case Calibri:
+		{
+			if (s_calibri_status)
+			{
+				m_text.setFont(f_calibri);
+				m_text_font = Calibri;
+			}
+			else
+			{
+				throw_error("Circle::fontUpdate()", "Calibri font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case ComicSans:
+		{
+			if (s_comic_status)
+			{
+				m_text.setFont(f_comic_sans);
+				m_text_font = ComicSans;
+			}
+			else
+			{
+				throw_error("Circle::fontUpdate()", "Comic Sans font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case CourierNew:
+		{
+			if (s_courier_status)
+			{
+				m_text.setFont(f_courier_new);
+				m_text_font = CourierNew;
+			}
+			else
+			{
+				throw_error("Circle::fontUpdate()", "Courier New font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case TimesNewRoman:
+		{
+			if (s_times_nr_status)
+			{
+				m_text.setFont(f_times_new_roman);
+				m_text_font = TimesNewRoman;
+			}
+			else
+			{
+				throw_error("Circle::fontUpdate()", "Times New Roman font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case TrebuchetMS:
+		{
+			if (s_trebuchet_status)
+			{
+				m_text.setFont(f_trebuchet_MS);
+				m_text_font = TrebuchetMS;
+			}
+			else
+			{
+				throw_error("Circle::fontUpdate()", "TrebuchetMS font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case Verdana:
+		{
+			if (s_verdana_status)
+			{
+				m_text.setFont(f_verdana);
+				m_text_font = Verdana;
+			}
+			else
+			{
+				throw_error("Circle::fontUpdate()", "Verdana font is not available", "ERROR");
+			}
+		}
+		break;
+
+		default:
+		{
+			if (s_arial_status)
+			{
+				m_text.setFont(f_arial);
+				m_text_font = Arial;
+				throw_error("Circle::fontUpdate()", "Given Font does not exist, setting to Arial", "ERROR");
+			}
+			else
+			{
+				throw_error("Circle::fontUpdate()", "Defaut font (Arial) is not available", "ERROR");
+			}
+		}
+		break;
+		}
+	}
+
+
+
+
+
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============                           M O D    F U N C T I O N S                          ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
+
 
-    case MIDDLE_MIDDLE:
-        {
-            this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
 
-    case RIGHT_MIDDLE:
-        {
-            this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + this->shape.getRadius() + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
 
-    case MIDDLE_BOTTOM:
-        {
-            this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + this->shape.getRadius() + text_shift.y));
-        }
-        break;
 
-    default:
-        {
-            this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
-    }
-}
+	void Circle::setPosition(const sf::Vector2f& position)
+	{
+		m_shape.setPosition(position);
 
+		this->shapeUpdate();
+		this->textUpdate();
+	}
 
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============                           M O D    F U N C T I O N S                          ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
+	void Circle::setPosition(float x, float y)
+	{
+		this->setPosition(sf::Vector2f(x, y));
+	}
 
 
+	sf::Vector2f Circle::getPosition() const
+	{
+		return m_shape.getPosition();
+	}
 
-void Circle::setPosition(const sf::Vector2f& position)
-{
-    ///sets KEngine Circle's position
+	
 
-    this->shape.setPosition(position);
+	////////////////////////////////////////////////////////////////
 
-    this->updateShape();
-    this->updateText();
-}
 
-void Circle::setPosition(float x, float y)
-{
-     ///sets KEngine Circle's position
 
-    this->setPosition(sf::Vector2f(x, y));
-}
+	void Circle::setSize(const sf::Vector2f& size)
+	{
+		m_shape.setRadius(size.x / 2);
 
-sf::Vector2f Circle::getPosition() const
-{
-    ///returns KEngine Circle's position
+		this->fullShapeUpdate();
+		this->fullTextUpdate ();
+	}
 
-    return this->shape.getPosition();
-}
 
+	void Circle::setSize(float size_x, float size_y)
+	{
+		m_shape.setRadius(size_x / 2);
 
-void Circle::setSize(const sf::Vector2f& size)
-{
-    ///sets KEngine Circle size
+		this->fullShapeUpdate();
+		this->fullTextUpdate();
+	}
 
-    this->shape.setRadius(size.x / 2);
 
-    this->updateShape();
-    this->updateText();
-}
+	sf::Vector2f Circle::getSize() const
+	{
+		return sf::Vector2f(m_shape.getRadius() * 2, m_shape.getRadius() * 2);
+	}
 
-void Circle::setSize(float size_x, float size_y)
-{
-    ///sets KEngine Circle size
 
-    this->shape.setRadius(size_x / 2);
 
-    this->updateShape();
-    this->updateText();
-}
+	////////////////////////////////////////////////////////////////
 
-sf::Vector2f Circle::getSize() const
-{
-    ///returns KEngine Circle size
 
-    sf::Vector2f temp(this->shape.getRadius() * 2, this->shape.getRadius() * 2);
-    return temp;
-}
 
+	void Circle::move(const sf::Vector2f& offset)
+	{
+		m_shape.move(offset);
 
-void Circle::move(const sf::Vector2f& offset)
-{
-    ///moves KEngine Circle by offset (px)
+		this->shapeUpdate();
+		this->textUpdate();
+	}
 
-    this->shape.move(offset);
 
-    this->updateShape();
-    this->updateText();
-}
+	void Circle::move(float offset_x, float offset_y)
+	{
+		m_shape.move(offset_x, offset_y);
 
+		this->shapeUpdate();
+		this->textUpdate();
+	}
 
-void Circle::move(float offset_x, float offset_y)
-{
-    ///moves KEngine Circle by offset (px)
 
-    this->shape.move(offset_x, offset_y);
 
-    this->updateShape();
-    this->updateText();
-}
+	////////////////////////////////////////////////////////////////
 
 
-void Circle::setRadius(float radius)
-{
-    ///sets KEngine Circle radius
 
-    this->shape.setRadius(radius);
+	void Circle::setRadius(float radius)
+	{
+		m_shape.setRadius(radius);
 
-    this->updateShape();
-    this->updateText();
-}
+		this->fullShapeUpdate();
+		this->fullTextUpdate ();
+	}
 
-float Circle::getRadius() const
-{
-    ///returns KEngine Circle radius
 
-    return this->shape.getRadius();
-}
+	float Circle::getRadius() const
+	{
+		return m_shape.getRadius();
+	}
 
 
-void Circle::setText(const std::wstring& text)
-{
-    ///changes String of KEngine Circle's text (std::wstring)
 
-    this->text.setString(text);
-    this->updateText();
-}
+	////////////////////////////////////////////////////////////////
 
-std::wstring Circle::getText() const
-{
-    ///returns String of KEngine Circle's text (std::wstring)
 
-    return this->text.getString();
-}
 
+	void Circle::setText(const std::wstring& text)
+	{
+		m_text.setString(text);
 
-sf::CircleShape* Circle::getShape()
-{
-    ///returns pointer to sf::CircleShape that this KEngine Circle uses
+		this->fullTextUpdate();
+	}
 
-    return &shape;
-}
 
-sf::Text* Circle::getSfText()
-{
-    ///returns pointer to sf::Text that this KEngine Circle uses
+	std::wstring Circle::getText() const
+	{
+		return m_text.getString();
+	}
 
-    return &text;
-}
 
 
-void Circle::setOrigin(int origin)
-{
-    ///changes origin of the KEngine Circle
-    /**available origins: <br>
-      * RIGHT_TOP     = top right corner <br>
-      * MIDDLE_TOP    = top <br>
-      * LEFT_TOP      = top left corner <br>
-      * RIGHT_MIDDLE  = right side <br>
-      * MIDDLE_MIDDLE = center <br>
-      * LEFT_MIDDLE   = left side <br>
-      * RIGHT_BOTTOM  = bottom right corner <br>
-      * MIDDLE_BOTTOM = bottom <br>
-      * LEFT_BOTTOM   = bottom left corner*/
+	////////////////////////////////////////////////////////////////
 
-    this->origin = origin;
 
-    this->updateShape();
-    this->updateText();
-}
 
-int Circle::getOrigin() const
-{
-    ///returns origin of the KEngine Circle
-    /**available origins: <br>
-      * RIGHT_TOP     = top right corner <br>
-      * MIDDLE_TOP    = top <br>
-      * LEFT_TOP      = top left corner <br>
-      * RIGHT_MIDDLE  = right side <br>
-      * MIDDLE_MIDDLE = center <br>
-      * LEFT_MIDDLE   = left side <br>
-      * RIGHT_BOTTOM  = bottom right corner <br>
-      * MIDDLE_BOTTOM = bottom <br>
-      * LEFT_BOTTOM   = bottom left corner*/
+	sf::CircleShape* Circle::getShape()
+	{
+		return &m_shape;
+	}
 
-    return this->origin;
-}
 
-void Circle::setRotation(float angle)
-{
-    ///rotates, don't really use it
+	sf::Text* Circle::getSfText()
+	{
+		return &m_text;
+	}
 
-    this->text.setRotation(angle);
-}
 
-void Circle::Rotate(float angle)
-{
-    ///rotates, don't really use it
 
-    this->text.rotate(angle);
-}
+	////////////////////////////////////////////////////////////////
 
-float Circle::getRotation() const
-{
-    ///returns KEngine Circle's rotation
 
-    return this->text.getRotation();
-}
 
+	void Circle::setOrigin(int origin)
+	{
+		///changes origin of the KEngine Circle
+		/**available origins: <br>
+		  * RIGHT_TOP     = top right corner <br>
+		  * MIDDLE_TOP    = top <br>
+		  * LEFT_TOP      = top left corner <br>
+		  * RIGHT_MIDDLE  = right side <br>
+		  * MIDDLE_MIDDLE = center <br>
+		  * LEFT_MIDDLE   = left side <br>
+		  * RIGHT_BOTTOM  = bottom right corner <br>
+		  * MIDDLE_BOTTOM = bottom <br>
+		  * LEFT_BOTTOM   = bottom left corner*/
 
-void Circle::setPositionByCentre(const sf::Vector2f& postion)
-{
-    ///sets position by the centre of the object
+		m_origin = origin;
 
-    sf::Vector2f delta(this->shape.getPosition().x - this->shapeCentre.x, this->shape.getPosition().y - this->shapeCentre.y);
+		this->fullShapeUpdate();
+		this->fullTextUpdate ();
+	}
 
-    this->setPosition(postion.x + delta.x, postion.y + delta.y);
-}
 
+	int Circle::getOrigin() const
+	{
+		///returns origin of the KEngine Circle
+		/**available origins: <br>
+		  * RIGHT_TOP     = top right corner <br>
+		  * MIDDLE_TOP    = top <br>
+		  * LEFT_TOP      = top left corner <br>
+		  * RIGHT_MIDDLE  = right side <br>
+		  * MIDDLE_MIDDLE = center <br>
+		  * LEFT_MIDDLE   = left side <br>
+		  * RIGHT_BOTTOM  = bottom right corner <br>
+		  * MIDDLE_BOTTOM = bottom <br>
+		  * LEFT_BOTTOM   = bottom left corner*/
 
-sf::Vector2f Circle::getShapeCentre() const
-{
-    ///returns center of KEngine Circle
+		return m_origin;
+	}
 
-    return this->shapeCentre;
-}
 
 
-void Circle::setScale(const sf::Vector2f& factors)
-{
-    ///sets KEngine Circle's scale
+	////////////////////////////////////////////////////////////////
 
-    this->shape.setScale(factors);
-    this->text.setScale(factors);
-}
 
-void Circle::setScale(float factor_x, float factor_y)
-{
-    ///sets KEngine Circle's scale
 
-    this->setScale(sf::Vector2f(factor_x, factor_y));
-}
+	void Circle::setRotation(float angle)
+	{
+		m_shape.setRotation(angle);
+		m_text.setRotation(angle);
+	}
 
-void Circle::scale(const sf::Vector2f& factors)
-{
-    ///scales KEngine Circle's scale
 
-    this->shape.scale(factors);
-    this->text.scale(factors);
-}
+	void Circle::rotate(float angle)
+	{
+		m_shape.rotate(angle);
+		m_text.rotate(angle);
+	}
 
-sf::Vector2f Circle::getScale() const
-{
-    ///returns scale of the KEngine Circle
 
-    return this->shape.getScale();
-}
+	float Circle::getRotation() const
+	{
+		return m_shape.getRotation();
+	}
 
 
-void Circle::setTexture(const sf::Texture* texture)
-{
-    ///changes KEngine Circle texture, idk if that works
-    /// setting texture from other texture
 
-    this->texture = *texture;
-    this->shape.setTexture(&this->texture);
-    this->texture_on = true;
-}
+	////////////////////////////////////////////////////////////////
 
-void Circle::setTexture(const std::string& texture_path)
-{
-    ///changes KEngine Circle texture, idk if that works
-    /// setting texture directly from file
 
-    this->texture_path = texture_path;
-    this->texture.loadFromFile(texture_path);
 
-    this->shape.setTexture(&this->texture);
-    this->texture_on = true;
-}
+	void Circle::setPositionByCenter(const sf::Vector2f& postion)
+	{
+		this->setPosition(postion.x + m_shape.getPosition().x - m_shapeCenter.x, postion.y + m_shape.getPosition().y - m_shapeCenter.y);
+	}
 
-const sf::Texture* Circle::getTexture() const
-{
-    ///returns pointer to KEngine Circle's texture
-    /// if there's no texture, it returns nullptr
 
-    if (!this->texture_on)
-        return nullptr;
-    else
-        return this->shape.getTexture();
-}
+	sf::Vector2f Circle::getShapeCenter() const
+	{
+		return m_shapeCenter;
+	}
 
-std::string Circle::getTexturePath() const
-{
-    ///just don't use it
 
-    return this->texture_path;
-}
 
+	////////////////////////////////////////////////////////////////
 
-void Circle::setFillColor(const sf::Color& color)
-{
-    ///sets KEngine Circle's fill color
 
-    this->shape.setFillColor(color);
-}
 
-const sf::Color &Circle::getFillColor() const
-{
-    ///returns KEngine Circle's fill color
+	void Circle::setScale(const sf::Vector2f& factors)
+	{
+		m_shape.setScale(factors);
+		m_text.setScale(factors);
 
-    return this->shape.getFillColor();
-}
+		this->shapeUpdate();
+		this->textUpdate();
+	}
 
-void Circle::setTextColor(const sf::Color& text_color)
-{
-    ///sets KEngine Circle's text fill color
 
-    this->text.setColor(text_color);
-}
+	void Circle::setScale(float factor_x, float factor_y)
+	{
+		this->setScale(sf::Vector2f(factor_x, factor_y));
 
-const sf::Color& Circle::getTextColor() const
-{
-    ///returns KEngine Circle's text fill color
+		this->shapeUpdate();
+		this->textUpdate();
+	}
 
-    return this->text.getColor();
-}
 
-void Circle::setOutlineColor(const sf::Color& outline_color)
-{
-    ///sets KEngine Circle's outline color
+	void Circle::scale(const sf::Vector2f& factors)
+	{
+		m_shape.scale(factors);
+		m_text.scale(factors);
 
-    this->shape.setOutlineColor(outline_color);
-}
+		this->shapeUpdate();
+		this->textUpdate();
+	}
 
-const sf::Color& Circle::getOutlineColor() const
-{
-    ///returns KEngine Circle's outline color
 
-    return this->shape.getOutlineColor();
-}
+	sf::Vector2f Circle::getScale() const
+	{
+		return m_shape.getScale();
+	}
 
-void Circle::setOutlineThickness(float outline_thickness)
-{
-    ///sets KEngine Circle's outline thickness
 
-    this->shape.setOutlineThickness(outline_thickness);
-}
 
-float Circle::getOutlineThickness() const
-{
-    ///returns KEngine Circle's outline thickness
+	////////////////////////////////////////////////////////////////
 
-    return this->shape.getOutlineThickness();
-}
 
-void Circle::setTextPosition(int position, const sf::Vector2f& text_shift)
-{
-    ///sets KEngine Circle's text position and text shift
-    /**available origins: <br>
-      * MIDDLE_TOP    = top <br>
-      * RIGHT_MIDDLE  = right side <br>
-      * MIDDLE_MIDDLE = center <br>
-      * LEFT_MIDDLE   = left side <br>
-      * MIDDLE_BOTTOM = bottom */
 
-    this->text_position = position;
-    this->text_shift = text_shift;
+	void Circle::setTexture(const sf::Texture* texture)
+	{
+		if (texture)
+		{
+			m_texture_path = Settings::UnknownTexturePathName();
+			m_texture = *texture;
+			m_texture_set = true;
+		}
+		else
+		{
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture.loadFromFile(m_texture_path);
+			m_texture_set = false;
+		}
 
-    updateText();
-}
+		this->m_shape.setTexture(&m_texture);
+	}
 
-int Circle::getTextPosition() const
-{
-    ///returns KEngine Circle's text position
-    /**available origins: <br>
-      * MIDDLE_TOP    = top <br>
-      * RIGHT_MIDDLE  = right side <br>
-      * MIDDLE_MIDDLE = center <br>
-      * LEFT_MIDDLE   = left side <br>
-      * MIDDLE_BOTTOM = bottom */
 
-    return this->text_position;
-}
+	void Circle::setTexture(const std::string& filename)
+	{
+		m_texture_set = true;
+		m_texture_path = filename;
 
-sf::Vector2f Circle::getTextShift() const
-{
-    ///returns KEngine Circle's text shift
+		if (!m_texture.loadFromFile(m_texture_path))
+		{
+			throw_error("Rectangle::Rectange(...)", "could not load texture from the given path", "ERROR");
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture.loadFromFile(m_texture_path);
+			m_texture_set = false;
+		}
 
-    return text_shift;
-}
+		m_shape.setTexture(&m_texture);
+	}
 
 
-void Circle::setTextStyle(int style)
-{
-    ///sets KEngine Circle's text style
-
-    this->text.setStyle(style);
-}
-
-unsigned int Circle::getTextStyle() const
-{
-    ///returns \KEngine Circle's text style
-
-    return this->text.getStyle();
-}
+	const sf::Texture* Circle::getTexture() const
+	{
+		if (!m_texture_set)
+			return nullptr;
+		else
+			return &m_texture;
+	}
 
-void Circle::setFont(int font)
-{
-    ///sets KEngine Circle's font
-    /**  available fonts <br>
-      *  airal <br>
-      *  airal unicode <br>
-      *  calimbri <br>
-      *  camic sans <br>
-      *  courier new <br>
-      *  times now roman <br>
-      *  trebuchet MS <br>
-      *  verdana */
-
-    switch(font)
-    {
-    case Arial:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
 
-    case Arial_Uni:
-        {
-            this->text.setFont(arial_uni);
-            this->text_font = Arial_Uni;
-        }
-        break;
+	////////////////////////////////
 
-    case Calibri:
-        {
-            this->text.setFont(calibri);
-            this->text_font = Calibri;
-        }
-        break;
 
-    case ComicSans:
-        {
-            this->text.setFont(comic_sans);
-            this->text_font = ComicSans;
-        }
-        break;
+	void Circle::addPathToTexture(const std::string& path)
+	{
+		m_texture_path = path;
+	}
 
-    case CourierNew:
-        {
-            this->text.setFont(courier_new);
-            this->text_font = CourierNew;
-        }
-        break;
 
-    case TimesNewRoman:
-        {
-            this->text.setFont(times_new_roman);
-            this->text_font = TimesNewRoman;
-        }
-        break;
+	std::string Circle::getTexturePath() const
+	{
+		return m_texture_path;
+	}
 
-    case TrebuchetMS:
-        {
-            this->text.setFont(trebuchet_MS);
-            this->text_font = TrebuchetMS;
-        }
-        break;
 
-    case Verdana:
-        {
-            this->text.setFont(verdana);
-            this->text_font = Verdana;
-        }
-        break;
+	bool Circle::isTextureSet() const
+	{
+		return m_texture_set;
+	}
 
-    default:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-    }
 
-    this->updateText();
-}
 
-int Circle::getFont() const
-{
-    ///returns KEngine Circle's font
-    /**  available fonts <br>
-      *  airal <br>
-      *  airal unicode <br>
-      *  calimbri <br>
-      *  camic sans <br>
-      *  courier new <br>
-      *  times now roman <br>
-      *  trebuchet MS <br>
-      *  verdana */
+	////////////////////////////////////////////////////////////////
 
-    return this->text_font;
-}
 
 
-void Circle::setCharacterSize(unsigned int char_size)
-{
-    ///sets KEngine Circle's text character size
+	void Circle::setFillColor(const sf::Color& color)
+	{
+		if (m_shape.getFillColor() != color)
+			m_shape.setFillColor(color);
+	}
 
-    this->text.setCharacterSize(char_size);
-}
 
-unsigned int Circle::getCharacterSize() const
-{
-    ///returns KEngine Circle's text character size
+	const sf::Color& Circle::getFillColor() const
+	{
+		return m_shape.getFillColor();
+	}
 
-    return text.getCharacterSize();
-}
 
 
+	////////////////////////////////////////////////////////////////
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============          R E N D E R   A N D   B E H A V I O U R   F U N C T I O N S          ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
 
 
+	void Circle::setTextColor(const sf::Color& text_color)
+	{
+		if (m_text.getFillColor() != text_color)
+			m_text.setFillColor(text_color);
+	}
 
-bool Circle::isInvaded(const sf::Vector2f& mousePosition) const
-{
-    ///if mouse is on KEngine Circle, returns true
 
-    sf::Vector2f dbysc; // shapeCentre - mousePosition
-    dbysc.x = shapeCentre.x - mousePosition.x;
-    dbysc.y = shapeCentre.y - mousePosition.y;
-    if (dbysc.x < 0) dbysc.x = -dbysc.x;
-    if (dbysc.y < 0) dbysc.y = -dbysc.y;
+	const sf::Color& Circle::getTextColor() const
+	{
+		return m_text.getFillColor();
+	}
 
-    if (dbysc.x * dbysc.x + dbysc.y * dbysc.y < this->shape.getRadius() * this->shape.getRadius() * this->shape.getScale().x * this->shape.getScale().y)
-            return true;
-    else    return false;
-}
 
-bool Circle::isClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
-{
-    ///if mouse is on KEngine Circle and the right button is clicked, returns true (use in pollEvent loop)
 
-    if (this->isInvaded(mousePosition) && event.type == sf::Event::MouseButtonPressed && event.key.code == button)
-            return true;
-    else    return false;
-}
+	////////////////////////////////////////////////////////////////
 
 
-bool Circle::isActive() const
-{
-    ///if KEngine Circle is displayed, returns true
 
-    return this->active;
-}
+	void Circle::setOutlineColor(const sf::Color& outline_color)
+	{
+		if (m_shape.getOutlineColor() != outline_color)
+			m_shape.setOutlineColor(outline_color);
+	}
 
-void  Circle::setActiveStatus(bool status)
-{
-    ///if KEngine Circle is active, it is displayed on the screen
 
-    this->active = status;
-}
+	const sf::Color& Circle::getOutlineColor() const
+	{
+		return m_shape.getOutlineColor();
+	}
 
 
-float Circle::update(const sf::Vector2f& mousePosition, sf::Event& event, sf::Mouse::Button button, sf::View* view)
-{
-    ///rounds text position to integers
 
-    this->text.setPosition(sf::Vector2f(static_cast<int>(this->text.getPosition().x), static_cast<int>(this->text.getPosition().y)));
+	////////////////////////////////////////////////////////////////
 
-    return 0;
-}
 
 
-void Circle::render(sf::RenderWindow *window)
-{
-    ///displays KEngine Circle on the screen, if active of course
+	void Circle::setOutlineThickness(float outline_thickness)
+	{
+		m_shape.setOutlineThickness(outline_thickness);
+	}
 
-    if (this->active)
-    {
-        window->draw(this->shape);
-        window->draw(this->text);
-    }
-}
 
+	float Circle::getOutlineThickness() const
+	{
+		return m_shape.getOutlineThickness();
+	}
 
 
-void Circle::initPhysics()
-{
-    ///initializes physics class
 
-    m_physics = std::make_unique<Physics>(this);
-}
+	////////////////////////////////////////////////////////////////
 
 
-void Circle::initPhysics(long double mass, float friction)
-{
-    ///initializes physics class
 
-    m_physics = std::make_unique<Physics>(this, mass, friction);
-}
+	void Circle::setTextPosition(int position, const sf::Vector2f& text_shift)
+	{
+		///sets KEngine Circle's m_text position and m_text shift
+		/**available origins: <br>
+		  * MIDDLE_TOP    = top <br>
+		  * RIGHT_MIDDLE  = right side <br>
+		  * MIDDLE_MIDDLE = center <br>
+		  * LEFT_MIDDLE   = left side <br>
+		  * MIDDLE_BOTTOM = bottom */
 
+		m_text_position = position;
+		m_text_shift = text_shift;
 
-void Circle::deletePhysics()
-{
-    ///deletes physics from the object
+		this->fullTextUpdate();
+	}
 
-    m_physics.reset();
-}
 
+	int Circle::getTextPosition() const
+	{
+		///returns KEngine Circle's m_text position
+		/**available origins: <br>
+		  * MIDDLE_TOP    = top <br>
+		  * RIGHT_MIDDLE  = right side <br>
+		  * MIDDLE_MIDDLE = center <br>
+		  * LEFT_MIDDLE   = left side <br>
+		  * MIDDLE_BOTTOM = bottom */
 
-void Circle::updatePhysics(const float dt)
-{
-    ///updates physics
+		return m_text_position;
+	}
 
-    if (this->m_physics != nullptr)
-        this->m_physics->update(dt);
-}
 
+	sf::Vector2f Circle::getTextShift() const
+	{
+		return m_text_shift;
+	}
 
-Physics* Circle::physics()
-{
-    ///returns physics class
 
-    return m_physics.get();
-}
 
-}
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Circle::setTextStyle(int style)
+	{
+		m_text.setStyle(style);
+
+		this->fullTextUpdate();
+	}
+
+
+	unsigned int Circle::getTextStyle() const
+	{
+		return m_text.getStyle();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Circle::setFont(int font)
+	{
+		///sets KEngine Circle's font
+		/**  available fonts <br>
+		  *  airal <br>
+		  *  airal unicode <br>
+		  *  calimbri <br>
+		  *  camic sans <br>
+		  *  courier new <br>
+		  *  times now roman <br>
+		  *  trebuchet MS <br>
+		  *  verdana */
+
+
+		this->fontUpdate(font);
+
+		this->fullTextUpdate();
+	}
+
+	int Circle::getFont() const
+	{
+		///returns KEngine Circle's font
+		/**  available fonts <br>
+		  *  airal <br>
+		  *  airal unicode <br>
+		  *  calimbri <br>
+		  *  camic sans <br>
+		  *  courier new <br>
+		  *  times now roman <br>
+		  *  trebuchet MS <br>
+		  *  verdana */
+
+		return m_text_font;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Circle::setCharacterSize(unsigned int char_size)
+	{
+		m_text.setCharacterSize(char_size);
+
+		this->fullTextUpdate();
+	}
+
+	unsigned int Circle::getCharacterSize() const
+	{
+		return m_text.getCharacterSize();
+	}
+
+
+
+
+
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============          R E N D E R   A N D   B E H A V I O U R   F U N C T I O N S          ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
+
+
+
+
+
+	bool Circle::isInvaded(const sf::Vector2f& mousePosition) const
+	{
+		return (pow(m_shapeCenter.x - mousePosition.x, 2) + pow(m_shapeCenter.y - mousePosition.y, 2) < pow(m_shape.getRadius() * m_shape.getScale().x, 2));
+	}
+
+
+	bool Circle::isInvaded_rect(const sf::Vector2f& mousePosition) const
+	{
+		//  normal rectangle - point collision detection
+		if (m_shape.getRotation() == 0.0f)
+			return abs(m_shapeCenter.x - mousePosition.x) < m_shape.getRadius() * m_shape.getScale().x && abs(m_shapeCenter.y - mousePosition.y) < m_shape.getRadius() * m_shape.getScale().y;
+
+		// rotated rectangle - point collision detection
+		// works only when m_origin is set to MIDDLE_MIDDLE
+		return
+			abs((cos(DTR(-m_shape.getRotation())) * m_shapeCenter.x - sin(DTR(-m_shape.getRotation())) * m_shapeCenter.y) - (cos(DTR(-m_shape.getRotation())) * mousePosition.x - sin(DTR(-m_shape.getRotation())) * mousePosition.y)) < m_shape.getRadius() * m_shape.getScale().x &&
+			abs((cos(DTR(-m_shape.getRotation())) * m_shapeCenter.y + sin(DTR(-m_shape.getRotation())) * m_shapeCenter.x) - (cos(DTR(-m_shape.getRotation())) * mousePosition.y + sin(DTR(-m_shape.getRotation())) * mousePosition.x)) < m_shape.getRadius() * m_shape.getScale().y;
+	}
+
+
+	////////////////////////////////
+
+
+	bool Circle::isClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
+	{
+		return (this->isInvaded(mousePosition) && event.type == sf::Event::MouseButtonPressed && event.key.code == button);
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	bool Circle::isActive() const
+	{
+		return m_active;
+	}
+
+
+	void  Circle::setActiveStatus(bool status)
+	{
+		m_active = status;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	float Circle::update(const sf::Vector2f& mousePosition, sf::Event& event, sf::Mouse::Button button, sf::View* view)
+	{
+		if (m_active)
+			m_text.setPosition(sf::Vector2f(static_cast<int>(m_text.getPosition().x), static_cast<int>(m_text.getPosition().y)));
+
+		return m_active;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Circle::render(sf::RenderWindow* window)
+	{
+		if (m_active)
+		{
+			window->draw(m_shape);
+			window->draw(m_text);
+		}
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Circle::initPhysics()
+	{
+		m_physics = std::make_unique<Physics>(this);
+	}
+
+
+	void Circle::initPhysics(long double mass, float friction)
+	{
+		m_physics = std::make_unique<Physics>(this, mass, friction);
+	}
+
+
+	void Circle::deletePhysics()
+	{
+		m_physics = nullptr;
+	}
+
+
+	////////////////////////////////
+
+
+	void Circle::updatePhysics(const float dt)
+	{
+		if (m_physics != nullptr)
+			m_physics->update(dt);
+		else
+			throw_error("Rectangle::updatePhysics(...)", "physics are not initialized yet", "WARNING");
+	}
+
+
+	Physics* Circle::physics()
+	{
+		return m_physics.get();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	bool Circle::created() const
+	{
+		return m_created;
+	}
+
+
+} // namespace ke

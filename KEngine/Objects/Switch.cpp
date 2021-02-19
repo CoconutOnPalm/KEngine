@@ -3,711 +3,865 @@
 namespace ke
 {
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//============== C O N S T R U C T O R S ,   D E S T R U C T O R S   A N D   O P E R A T O R S ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
-
-
-
-Switch::Switch()
-{
-    ///KEngine Switch default constructor
-    /** KEngine Switch is a on / off object based on KEngine Circle
-        and KEngine CurvedButton that allows you to make signal true
-        or false, similar to the on / off buttons on your phone,
-        inherits from class GuiObject*/
-
-    this->signal = false;
-    this->moving = false;
-}
-
-
-
-Switch::Switch( const sf::Vector2f& size,
-                float button_radius,
-                const sf::Vector2f& position,
-                const sf::Texture* button_texture,
-                const sf::Texture* object_texture,
-                const sf::Color& button_color,
-                const sf::Color& object_color,
-                float button_outline_thickness,
-                const sf::Color& button_outline_color,
-                float object_outline_thickness,
-                const sf::Color& object_outline_color,
-                bool active )
-{
-    ///KEngine Switch constructor
-    /** KEngine Switch is a on / off object based on KEngine Circle
-        and KEngine CurvedButton that allows you to make signal true
-        or false, similar to the on / off buttons on your phone,
-        inherits from class GuiObject*/
-
-    this->t_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, button_texture, active);
-    this->c_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-    this->object = std::make_unique<CurvedButton>(size, position, object_texture, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-
-    this->signal = false;
-    this->moving = false;
-}
-
-Switch::Switch( const sf::Vector2f& size,
-                float button_radius,
-                const sf::Vector2f& position,
-                const std::string& button_texture_path,
-                const std::string& object_texture_path,
-                const sf::Color& button_color,
-                const sf::Color& object_color,
-                float button_outline_thickness,
-                const sf::Color& button_outline_color,
-                float object_outline_thickness,
-                const sf::Color& object_outline_color,
-                bool active )
-{
-    ///KEngine Switch constructor
-    /** KEngine Switch is a on / off object based on KEngine Circle
-        and KEngine CurvedButton that allows you to make signal true
-        or false, similar to the on / off buttons on your phone,
-        inherits from class GuiObject*/
-
-    this->t_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, button_texture_path, active);
-    this->c_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-    this->object = std::make_unique<CurvedButton>(size, position, object_texture_path, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-
-    this->signal = false;
-    this->moving = false;
-}
-
-
-
-Switch::~Switch()
-{
-    ///KEngine Switch destructor
-    /** KEngine Switch is a on / off object based on KEngine Circle
-        and KEngine CurvedButton that allows you to make signal true
-        or false, similar to the on / off buttons on your phone,
-        inherits from class GuiObject*/
-}
-
-
-Switch::Switch(Switch& other)
-{
-    ///KEngine Switch copy constructor
-    /** KEngine Switch is a on / off object based on KEngine Circle
-        and KEngine CurvedButton that allows you to make signal true
-        or false, similar to the on / off buttons on your phone,
-        inherits from class GuiObject*/
-
-    this->t_button->operator = (*other.getTextureButton());
-    this->c_button->operator = (*other.getColorButton());
-    this->object->operator = (*other.getObject());
-
-    this->signal = other.getSignal();
-    this->moving = false;
-}
-
-
-Switch& Switch::operator= (Switch& other)
-{
-    ///KEngine Rectangle operator =
-    /** KEngine Switch is a on / off object based on KEngine Circle
-        and KEngine CurvedButton that allows you to make signal true
-        or false, similar to the on / off buttons on your phone,
-        inherits from class GuiObject*/
-
-    this->t_button->operator = (*other.getTextureButton());
-    this->c_button->operator = (*other.getColorButton());
-    this->object->operator = (*other.getObject());
-
-    this->signal = other.getSignal();
-    this->moving = false;
-
-    return *this;
-}
-
-
-void Switch::create( const sf::Vector2f& size,
-                     float button_radius,
-                     const sf::Vector2f& position,
-                     const sf::Texture* button_texture,
-                     const sf::Texture* object_texture,
-                     const sf::Color& button_color,
-                     const sf::Color& object_color,
-                     float button_outline_thickness,
-                     const sf::Color& button_outline_color,
-                     float object_outline_thickness,
-                     const sf::Color& object_outline_color,
-                     bool active )
-{
-    ///KEngine Switch create function <br>
-    ///use with default constructor
-    /** KEngine Switch is a on / off object based on KEngine Circle
-        and KEngine CurvedButton that allows you to make signal true
-        or false, similar to the on / off buttons on your phone,
-        inherits from class GuiObject*/
-
-    this->t_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, button_texture, active);
-    this->c_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-    this->object = std::make_unique<CurvedButton>(size, position, object_texture, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-}
-
-
-void Switch::create( const sf::Vector2f& size,
-                     float button_radius,
-                     const sf::Vector2f& position,
-                     const std::string& button_texture_path,
-                     const std::string& object_texture_path,
-                     const sf::Color& button_color,
-                     const sf::Color& object_color,
-                     float button_outline_thickness,
-                     const sf::Color& button_outline_color,
-                     float object_outline_thickness,
-                     const sf::Color& object_outline_color,
-                     bool active )
-{
-    ///KEngine Switch create function <br>
-    ///use with default constructor
-    /** KEngine Switch is a on / off object based on KEngine Circle
-        and KEngine CurvedButton that allows you to make signal true
-        or false, similar to the on / off buttons on your phone,
-        inherits from class GuiObject*/
-
-    this->t_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, button_texture_path, active);
-    this->c_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-    this->object = std::make_unique<CurvedButton>(size, position, object_texture_path, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-}
-
-
-
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============                           M O D    F U N C T I O N S                          ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
-
-
-
-void Switch::setPosition(const sf::Vector2f& position)
-{
-    ///sets KEngine Rectangle's position
-
-    this->object->setPosition(position);
-    this->t_button->setPosition(sf::Vector2f(this->object->getPosition().x - (this->object->getSize().x * this->object->getScale().x) / 2, position.y));
-    this->c_button->setPosition(sf::Vector2f(this->object->getPosition().x - (this->object->getSize().x * this->object->getScale().x) / 2, position.y));
-}
-
-void Switch::setPosition(float x, float y)
-{
-    ///sets KEngine Rectangle's position
-
-    this->setPosition(sf::Vector2f(x, y));
-}
-
-sf::Vector2f Switch::getPosition() const
-{
-    ///returns KEngine Rectangle's position
-
-    return this->object->getPosition();
-}
-
-
-void Switch::setSize(const sf::Vector2f& size)
-{
-    ///sets KEngine Rectangle size
-
-    this->object->setSize(size);
-    this->c_button->setPosition(this->object->getPosition().x - (size.x * object->getScale().x) / 2, this->object->getPosition().y);
-    this->t_button->setPosition(this->object->getPosition().x - (size.x * object->getScale().x) / 2, this->object->getPosition().y);
-}
-
-void Switch::setSize(float size_x, float size_y)
-{
-    ///sets KEngine Rectangle size
-
-    this->setSize(sf::Vector2f(size_x, size_y));
-}
-
-sf::Vector2f Switch::getSize() const
-{
-    ///returns KEngine Rectangle size
-
-    return this->object->getSize();
-}
-
-void Switch::setButtonRadius(float radius)
-{
-    ///sets radius of the button
-
-    this->t_button->setRadius(radius);
-    this->c_button->setRadius(radius);
-
-    this->t_button->setPosition((this->object->getPosition().x - this->object->getSize().y) / 2, this->object->getPosition().y);
-    this->c_button->setPosition((this->object->getPosition().x - this->object->getSize().y) / 2, this->object->getPosition().y);
-}
-
-float Switch::getButtonRadius() const
-{
-    ///returns radius of the button
-
-    return this->c_button->getRadius();
-}
-
-
-void Switch::move(const sf::Vector2f& offset)
-{
-    ///moves KEngine Rectangle by offset (px)
-
-    this->object->move(offset);
-    this->t_button->move(offset);
-    this->c_button->move(offset);
-}
 
-void Switch::move(float offset_x, float offset_y)
-{
-    ///moves KEngine Rectangle by offset (px)
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//============== C O N S T R U C T O R S ,   D E S T R U C T O R S   A N D   O P E R A T O R S ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
 
-    this->object->move(offset_x, offset_y);
-    this->t_button->move(offset_x, offset_y);
-    this->c_button->move(offset_x, offset_y);
-}
 
 
-void Switch::setScale(const sf::Vector2f& factors)
-{
-    ///sets KEngine Rectangle's scale
 
-    this->object->setScale(factors);
-    this->setPosition(this->object->getPosition());
-}
 
-void Switch::setScale(float factor_x, float factor_y)
-{
-    ///sets KEngine Rectangle's scale
+	Switch::Switch()
+		: m_signal(false)
+		, m_moving(false)
+	{
 
-    this->object->setScale(factor_x, factor_y);
-    this->setPosition(this->object->getPosition());
-}
+	}
 
-void Switch::setButtonScale(const sf::Vector2f& factors)
-{
-    ///sets KEngine Rectangle's button scale
 
-    this->c_button->setScale(factors);
-    this->t_button->setScale(factors);
-}
+	////////////////////////////////
 
-void Switch::setButtonScale(float factor_x, float factor_y)
-{
-    ///sets KEngine Rectangle's button scale
 
-    this->c_button->setScale(factor_x, factor_y);
-    this->t_button->setScale(factor_x, factor_y);
-    this->setPosition(this->object->getPosition());
-}
+	Switch::Switch(
+		const sf::Vector2f& size,
+		float button_radius,
+		const sf::Vector2f& position,
+		int origin,
+		const sf::Texture* button_texture,
+		const sf::Texture* m_object_texture,
+		const sf::Color& button_color,
+		const sf::Color& m_object_color,
+		float button_outline_thickness,
+		const sf::Color& button_outline_color,
+		float m_object_outline_thickness,
+		const sf::Color& m_object_outline_color,
+		bool active)
 
-void Switch::scale(const sf::Vector2f& factors)
-{
-    ///scales KEngine Rectangle
+		: m_signal(false)
+		, m_moving(false)
+	{
+		m_object.create(size, position, origin, m_object_texture, L"", 0, MIDDLE_MIDDLE, m_object_color, sf::Color::Transparent, m_object_outline_thickness, m_object_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		m_texture_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - m_object.getButton()->getSize().x / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, button_texture, active);
+		m_color_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - m_object.getButton()->getSize().x / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+	}
 
-    this->object->scale(factors);
-    this->setPosition(this->object->getPosition());
-}
 
-void Switch::scaleButton(const sf::Vector2f& factors)
-{
-    ///scales KEngine Rectangle's button
 
-    this->c_button->scale(factors);
-    this->t_button->scale(factors);
-    this->setPosition(this->object->getPosition());
-}
+	Switch::Switch(
+		const sf::Vector2f& size,
+		float button_radius,
+		const sf::Vector2f& position,
+		int origin,
+		const std::string& button_texture_path,
+		const std::string& m_object_texture_path,
+		const sf::Color& button_color,
+		const sf::Color& m_object_color,
+		float button_outline_thickness,
+		const sf::Color& button_outline_color,
+		float m_object_outline_thickness,
+		const sf::Color& m_object_outline_color,
+		bool active)
 
-sf::Vector2f Switch::getScale() const
-{
-    ///returns scale of the KEngine Rectangle
+		: m_signal(false)
+		, m_moving(false)
+	{
+		m_object.create(size, position, origin, m_object_texture_path, L"", 0, MIDDLE_MIDDLE, m_object_color, sf::Color::Transparent, m_object_outline_thickness, m_object_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		m_texture_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - m_object.getButton()->getSize().x / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, button_texture_path, active);
+		m_color_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - m_object.getButton()->getSize().x / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+	}
 
-    return this->object->getScale();
-}
 
-sf::Vector2f Switch::getButtonScale() const
-{
-    ///returns scale of the KEngine Rectangle's button
+	////////////////////////////////
 
-    return this->t_button->getScale();
-}
 
+	Switch::~Switch()
+	{
+		
+	}
 
-void Switch::setPositionByCentre(const sf::Vector2f& postion)
-{
-    ///sets position by the centre of the object
 
-    sf::Vector2f delta(this->object->getPosition().x - this->object->getShapeCentre().x, this->object->getPosition().y - this->object->getShapeCentre().y);
 
-    this->setPosition(postion.x + delta.x, postion.y + delta.y);
-}
+	////////////////////////////////////////////////////////////////
 
-sf::Vector2f Switch::getShapeCentre() const
-{
-    ///returns centre of the object
 
-    return object->getShapeCentre();
-}
 
-sf::Vector2f Switch::getButtonCentre() const
-{
-    ///returns centre of the button
+	Switch::Switch(Switch& other)
+		: m_signal(other.signal())
+		, m_moving(other.isMoving())
+	{
+		m_texture_button = (*other.getTextureButton());
+		m_color_button = (*other.getColorButton());
+		m_object = (*other.getObject());
+	}
 
-    return t_button->getShapeCentre();
-}
 
+	////////////////////////////////
 
-void Switch::setTexture(const sf::Texture* texture)
-{
-    ///changes KEngine Rectangle texture
-    /// setting texture from other texture
 
-    this->object->setTexture(texture);
-}
+	Switch& Switch::operator= (Switch& other)
+	{
+		m_texture_button = (*other.getTextureButton());
+		m_color_button = (*other.getColorButton());
+		m_object = (*other.getObject());
 
-void Switch::setButtonTexture(const sf::Texture* texture)
-{
-    ///changes KEngine Rectangle's button texture
-    /// setting texture from other texture
+		m_signal = other.signal();
+		m_moving = other.isMoving();
 
-    this->t_button->setTexture(texture);
-}
+		return *this;
+	}
 
-void Switch::setTexture(const std::string& texture_path)
-{
-    ///changes KEngine Rectangle texture
-    /// setting texture directly from file
 
-    this->object->setTexture(texture_path);
-}
 
-void Switch::setButtonTexture(const std::string& texture_path)
-{
-    ///changes KEngine Rectangle's button texture
-    /// setting texture directly from file
+	////////////////////////////////////////////////////////////////
 
-    this->t_button->setTexture(texture_path);
-}
 
-const sf::Texture* Switch::getTexture() const
-{
-    ///returns pointer to KEngine Rectangle's texture
-    /// if there's no texture, it returns nullptr
 
-    return this->object->getTexture();
-}
+	void Switch::create(
+		const sf::Vector2f& size,
+		float button_radius,
+		const sf::Vector2f& position,
+		int origin,
+		const sf::Texture* button_texture,
+		const sf::Texture* m_object_texture,
+		const sf::Color& button_color,
+		const sf::Color& m_object_color,
+		float button_outline_thickness,
+		const sf::Color& button_outline_color,
+		float m_object_outline_thickness,
+		const sf::Color& m_object_outline_color,
+		bool active)
+	{
+		m_object.create(size, position, origin, m_object_texture, L"", 0, MIDDLE_MIDDLE, m_object_color, sf::Color::Transparent, m_object_outline_thickness, m_object_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		m_texture_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - m_object.getButton()->getSize().x / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, button_texture, active);
+		m_color_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - m_object.getButton()->getSize().x / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
 
-const sf::Texture* Switch::getButtonTexture() const
-{
-    ///returns pointer to KEngine Rectangle's button texture
-    /// if there's no texture, it returns nullptr
+		m_signal = false;
+		m_moving = false;
+	}
 
-    return this->t_button->getTexture();
-}
 
 
-void Switch::setFillColor(const sf::Color& color)
-{
-    ///sets KEngine Rectangle's fill color
+	void Switch::create(
+		const sf::Vector2f& size,
+		float button_radius,
+		const sf::Vector2f& position,
+		int origin,
+		const std::string& button_texture_path,
+		const std::string& m_object_texture_path,
+		const sf::Color& button_color,
+		const sf::Color& m_object_color,
+		float button_outline_thickness,
+		const sf::Color& button_outline_color,
+		float m_object_outline_thickness,
+		const sf::Color& m_object_outline_color,
+		bool active)
+	{
+		m_object.create(size, position, origin, m_object_texture_path, L"", 0, MIDDLE_MIDDLE, m_object_color, sf::Color::Transparent, m_object_outline_thickness, m_object_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		m_texture_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - m_object.getButton()->getSize().x / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, button_texture_path, active);
+		m_color_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - m_object.getButton()->getSize().x / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
 
-    this->object->setFillColor(color);
-}
+		m_signal = false;
+		m_moving = false;
+	}
 
-void Switch::setButtonColor(const sf::Color& color)
-{
-    ///sets KEngine Rectangle's button fill color
 
-    c_button->setFillColor(color);
-}
 
-const sf::Color& Switch::getFillColor() const
-{
-    ///returns KEngine Rectangle's fill color
 
-    return this->object->getFillColor();
-}
 
-const sf::Color& Switch::getButtonColor() const
-{
-    ///returns KEngine Rectangle's button fill color
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============                           M O D    F U N C T I O N S                          ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
 
-    return this->c_button->getFillColor();
-}
 
 
-void Switch::setTextColor(const sf::Color& text_color)
-{
-    ///does nothing, no text in this object
-}
 
-const sf::Color& Switch::getTextColor() const
-{
-    ///does nothing, no text in this object
 
-    return sf::Color::Transparent;
-}
+	void Switch::setPosition(const sf::Vector2f& position)
+	{
+		m_object.setPosition(position);
 
+		if (m_signal)
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+		else
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+	}
 
-void Switch::setOutlineColor(const sf::Color& outline_color)
-{
-    ///sets KEngine Rectangle's outline color
 
-    this->object->setOutlineColor(outline_color);
-}
+	void Switch::setPosition(float x, float y)
+	{
+		this->setPosition(sf::Vector2f(x, y));
+	}
 
-void Switch::setOutlineButtonColor(const sf::Color& outline_color)
-{
-    ///sets KEngine Rectangle's button outline color
 
-    this->c_button->setOutlineColor(outline_color);
-}
+	sf::Vector2f Switch::getPosition() const
+	{
+		return m_object.getPosition();
+	}
 
-const sf::Color& Switch::getOutlineColor() const
-{
-    ///returns KEngine Rectangle's outline color
 
-    return this->object->getOutlineColor();
-}
 
-const sf::Color& Switch::getOutlineButtonColor() const
-{
-    ///returns KEngine Rectangle's button outline color
+	////////////////////////////////////////////////////////////////
 
-    return this->c_button->getOutlineColor();
-}
 
 
-void Switch::setOutlineThickness(float outline_thickness)
-{
-    ///sets KEngine Rectangle's outline thickness
+	void Switch::setSize(const sf::Vector2f& size)
+	{
+		m_object.setSize(size);
 
-    this->object->setOutlineThickness(outline_thickness);
-}
+		if (m_signal)
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+		else
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+	}
 
-void Switch::setOutlineButtonThickness(float outline_thickness)
-{
-    ///sets KEngine Rectangle's button outline thickness
 
-    this->c_button->setOutlineThickness(outline_thickness);
-}
+	void Switch::setSize(float size_x, float size_y)
+	{
+		m_object.setSize(size_x, size_y);
 
-float Switch::getOutlineThickness() const
-{
-    ///returns KEngine Rectangle's outline thickness
+		if (m_signal)
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+		else
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+	}
 
-    return this->object->getOutlineThickness();
-}
 
-float Switch::getOutlineButtonThickness() const
-{
-    ///returns KEngine Rectangle's button outline thickness
+	sf::Vector2f Switch::getSize() const
+	{
+		return m_object.getSize();
+	}
 
-    return this->c_button->getOutlineThickness();
-}
 
+	////////////////////////////////
 
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============          R E N D E R   A N D   B E H A V I O U R   F U N C T I O N S          ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
+	void Switch::setButtonRadius(float radius)
+	{
+		m_texture_button.setRadius(radius);
+		m_color_button.setRadius(radius);
 
+		if (m_signal)
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+		else
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+	}
 
 
-bool Switch::isInvaded(const sf::Vector2f& mousePosition) const
-{
-    ///if mouse is on KEngine Rectangle, returns true
+	float Switch::getButtonRadius() const
+	{
+		return m_color_button.getRadius();
+	}
 
-    return this->object->isInvaded(mousePosition);
-}
 
-bool Switch::isButtonInvaded(const sf::Vector2f& mousePosition) const
-{
-    ///if mouse is on KEngine Rectangle's button, returns true
 
-    return this->t_button->isInvaded(mousePosition);
-}
+	////////////////////////////////////////////////////////////////
 
-bool Switch::isClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
-{
-    ///if mouse is on KEngine Rectangle and the right button is clicked, returns true (use in pollEvent loop)
 
-    return this->object->isClicked(button, mousePosition, event);
-}
 
-bool Switch::isButtonClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
-{
-    ///if mouse is on KEngine Rectangle's button and the right button is clicked, returns true (use in pollEvent loop)
+	void Switch::move(const sf::Vector2f& offset)
+	{
+		m_object.move(offset);
+		m_texture_button.move(offset);
+		m_color_button.move(offset);
+	}
 
-    return this->t_button->isClicked(button, mousePosition, event);
-}
 
+	void Switch::move(float offset_x, float offset_y)
+	{
+		m_object.move(offset_x, offset_y);
+		m_texture_button.move(offset_x, offset_y);
+		m_color_button.move(offset_x, offset_y);
+	}
 
 
-bool Switch::isActive() const
-{
-    ///if KEngine Rectangle is displayed, returns true
 
-    return this->object->isActive();
-}
+	////////////////////////////////////////////////////////////////
 
-void Switch::setActiveStatus(bool status)
-{
-    ///if KEngine Rectangle is active, it is displayed on the screen
 
-    this->c_button->setActiveStatus(status);
-    this->t_button->setActiveStatus(status);
-    this->object->setActiveStatus(status);
-}
 
+	void Switch::setText(const std::wstring& text)
+	{
+		// Does nothing - not available in this object
+	}
 
 
-Circle* Switch::getColorButton()
-{
-    return this->c_button.get();
-}
+	std::wstring Switch::getText() const
+	{
+		// Does nothing - not available in this object
 
-Circle* Switch::getTextureButton()
-{
-    return this->t_button.get();
-}
+		return std::wstring();
+	}
 
-CurvedButton* Switch::getObject()
-{
-    return this->object.get();
-}
 
 
+	////////////////////////////////////////////////////////////////
 
-void Switch::setSignal(bool signal)
-{
-    ///sets the signal
-    /** <br> on - true <br> off - false*/
 
-    this->signal = signal;
 
-    if (signal)
-    {
-        t_button->setPosition(object->getPosition().x + object->getSize().x / 2, object->getPosition().y);
-        c_button->setPosition(object->getPosition().x + object->getSize().x / 2, object->getPosition().y);
-    }
-    else
-    {
-        t_button->setPosition(object->getPosition().x - object->getSize().x / 2, object->getPosition().y);
-        c_button->setPosition(object->getPosition().x - object->getSize().x / 2, object->getPosition().y);
-    }
-}
+	void Switch::setOrigin(int origin)
+	{
+		m_object.setOrigin(origin);
 
-bool Switch::getSignal() const
-{
-    ///returns the signal
-    /** <br> on - true <br> off - false*/
+		if (m_signal)
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+		else
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+	}
 
-    return this->signal;
-}
 
+	int Switch::getOrigin() const
+	{
+		return m_object.getOrigin();
+	}
 
 
-bool Switch::isMoving() const
-{
-    ///if button is moving, return true
-    /** used in SmoothSignalChange */
 
-    return this->moving;
-}
+	////////////////////////////////////////////////////////////////
 
 
 
-float Switch::update(const sf::Vector2f& mousePosition, sf::Event& event, sf::Mouse::Button button, sf::View* view)
-{
-    ///1/2 heart of the KEngine Switch, use if you don't want the smooth change
+	void Switch::setRotation(float angle)
+	{
+		// Does nothing - not available in this object
+	}
 
-    if (this->isClicked(button, mousePosition, event))
-    {
-        if (signal) signal = false;
-        else        signal = true;
 
-        if (signal)
-        {
-            t_button->setPosition(object->getPosition().x + object->getSize().x / 2, object->getPosition().y);
-            c_button->setPosition(object->getPosition().x + object->getSize().x / 2, object->getPosition().y);
-        }
-        else
-        {
-            t_button->setPosition(object->getPosition().x - object->getSize().x / 2, object->getPosition().y);
-            c_button->setPosition(object->getPosition().x - object->getSize().x / 2, object->getPosition().y);
-        }
+	void Switch::rotate(float angle)
+	{
+		// Does nothing - not available in this object
+	}
 
-        return 1;
-    }
-    else return 0;
-}
 
-void Switch::SSC_click_update(const sf::Vector2f& mousePosition, sf::Event& event, sf::Mouse::Button button)
-{
-    ///!!! required to run KEngine Switch SmoothSignalChange properly !!!
+	float Switch::getRotation() const
+	{
+		// Does nothing - not available in this object
 
-    if (this->isClicked(button, mousePosition, event) && !moving)
-    {
-        this->moving = true;
-        if (signal) signal = false;
-        else        signal = true;
-    }
-}
+		return 0.0f;
+	}
 
-float Switch::SmoothSignalChange(const sf::Vector2f& mousePosition, sf::Mouse::Button button, float speed, float dt)
-{
-    ///!!! SSC_click_update(...) in sf::Window::pollEvent required to run this function properly !!!
-    ///<br>2/2 heart of the KEngine Switch, use if you want the smooth change
 
-    if (this->moving)
-    {
-        if (signal)
-        {
-            this->t_button->move(speed * dt, 0);
-            this->c_button->move(speed * dt, 0);
-        }
-        else
-        {
-            this->t_button->move(-speed * dt, 0);
-            this->c_button->move(-speed * dt, 0);
-        }
 
-        if (t_button->getPosition().x < object->getPosition().x - object->getSize().x / 2)
-        {
-            t_button->setPosition(object->getPosition().x - object->getSize().x / 2, object->getPosition().y);
-            c_button->setPosition(object->getPosition().x - object->getSize().x / 2, object->getPosition().y);
+	////////////////////////////////////////////////////////////////
 
-            this->moving = false;
-        }
-        else if (t_button->getPosition().x > object->getPosition().x + object->getSize().x / 2)
-        {
-            t_button->setPosition(object->getPosition().x + object->getSize().x / 2, object->getPosition().y);
-            c_button->setPosition(object->getPosition().x + object->getSize().x / 2, object->getPosition().y);
 
-            this->moving = false;
-        }
 
-        return 1;
-    }
-    else return 0;
-}
+	void Switch::setScale(const sf::Vector2f& factors)
+	{
+		m_object.setScale(factors);
 
+		this->setPosition(m_object.getPosition());
+	}
 
-void Switch::render(sf::RenderWindow* window)
-{
-    ///displays KEngine Rectangle on the screen, if active of course
 
-    this->object->render(window);
+	void Switch::setScale(float factor_x, float factor_y)
+	{
+		m_object.setScale(factor_x, factor_y);
 
-    this->c_button->render(window);
-    this->t_button->render(window);
-}
+		this->setPosition(m_object.getPosition());
+	}
 
-}
+
+	////////////////////////////////
+
+
+	void Switch::setButtonScale(const sf::Vector2f& factors)
+	{
+		m_color_button.setScale(factors);
+		m_texture_button.setScale(factors);
+	}
+
+
+	void Switch::setButtonScale(float factor_x, float factor_y)
+	{
+		m_color_button.setScale(factor_x, factor_y);
+		m_texture_button.setScale(factor_x, factor_y);
+	}
+
+
+	////////////////////////////////
+
+
+	void Switch::scale(const sf::Vector2f& factors)
+	{
+		m_object.scale(factors);
+
+		this->setPosition(m_object.getPosition());
+	}
+
+
+	void Switch::scaleButton(const sf::Vector2f& factors)
+	{
+		m_color_button.scale(factors);
+		m_texture_button.scale(factors);
+	}
+
+
+	////////////////////////////////
+
+
+	sf::Vector2f Switch::getScale() const
+	{
+		return m_object.getScale();
+	}
+
+
+	sf::Vector2f Switch::getButtonScale() const
+	{
+		return m_texture_button.getScale();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Switch::setPositionByCenter(const sf::Vector2f& position)
+	{
+		m_object.setPositionByCenter(position);
+
+		if (m_signal)
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+		else
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+	}
+
+
+	sf::Vector2f Switch::getShapeCenter() const
+	{
+		return m_object.getShapeCenter();
+	}
+
+
+	sf::Vector2f Switch::getButtonCenter() const
+	{
+		return m_texture_button.getShapeCenter();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Switch::setTexture(const sf::Texture* texture)
+	{
+		m_object.setTexture(texture);
+	}
+
+
+	void Switch::setButtonTexture(const sf::Texture* texture)
+	{
+		m_texture_button.setTexture(texture);
+	}
+
+
+
+	void Switch::setTexture(const std::string& texture_path)
+	{
+		m_object.setTexture(texture_path);
+	}
+
+
+	void Switch::setButtonTexture(const std::string& texture_path)
+	{
+		m_texture_button.setTexture(texture_path);
+	}
+
+
+
+	const sf::Texture* Switch::getTexture() const
+	{
+		return m_object.getTexture();
+	}
+
+
+	const sf::Texture* Switch::getButtonTexture() const
+	{
+		return m_texture_button.getTexture();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Switch::setFillColor(const sf::Color& color)
+	{
+		m_object.setFillColor(color);
+	}
+
+
+	void Switch::setButtonColor(const sf::Color& color)
+	{
+		m_color_button.setFillColor(color);
+	}
+
+
+
+	const sf::Color& Switch::getFillColor() const
+	{
+		return m_object.getFillColor();
+	}
+
+
+	const sf::Color& Switch::getButtonColor() const
+	{
+		return m_color_button.getFillColor();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Switch::setTextColor(const sf::Color& text_color)
+	{
+		///does nothing, no text in this m_object
+	}
+
+
+	const sf::Color& Switch::getTextColor() const
+	{
+		///does nothing, no text in this m_object
+
+		return sf::Color::Transparent;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Switch::setOutlineColor(const sf::Color& outline_color)
+	{
+		m_object.setOutlineColor(outline_color);
+	}
+
+
+	void Switch::setOutlineButtonColor(const sf::Color& outline_color)
+	{
+		m_color_button.setOutlineColor(outline_color);
+	}
+
+
+
+	const sf::Color& Switch::getOutlineColor() const
+	{
+		return m_object.getOutlineColor();
+	}
+
+
+	const sf::Color& Switch::getOutlineButtonColor() const
+	{
+		return m_color_button.getOutlineColor();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Switch::setOutlineThickness(float outline_thickness)
+	{
+		m_object.setOutlineThickness(outline_thickness);
+	}
+
+
+	void Switch::setOutlineButtonThickness(float outline_thickness)
+	{
+		m_color_button.setOutlineThickness(outline_thickness);
+	}
+
+
+
+	float Switch::getOutlineThickness() const
+	{
+		return m_object.getOutlineThickness();
+	}
+
+
+	float Switch::getOutlineButtonThickness() const
+	{
+		return m_color_button.getOutlineThickness();
+	}
+
+
+
+
+
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============          R E N D E R   A N D   B E H A V I O U R   F U N C T I O N S          ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
+
+
+
+
+
+	bool Switch::isInvaded(const sf::Vector2f& mousePosition) const
+	{
+		return m_object.isInvaded(mousePosition);
+	}
+
+
+
+	bool Switch::isButtonInvaded(const sf::Vector2f& mousePosition) const
+	{
+		return m_texture_button.isInvaded(mousePosition);
+	}
+
+
+	////////////////////////////////
+
+
+	bool Switch::isClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
+	{
+		return m_object.isClicked(button, mousePosition, event);
+	}
+
+
+	bool Switch::isButtonClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
+	{
+		return m_texture_button.isClicked(button, mousePosition, event);
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	bool Switch::isActive() const
+	{
+		return m_object.isActive();
+	}
+
+
+	void Switch::setActiveStatus(bool status)
+	{
+		m_color_button.setActiveStatus(status);
+		m_texture_button.setActiveStatus(status);
+		m_object.setActiveStatus(status);
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	Circle* Switch::getColorButton()
+	{
+		return &m_color_button;
+	}
+
+
+	Circle* Switch::getTextureButton()
+	{
+		return &m_texture_button;
+	}
+
+
+	CurvedButton* Switch::getObject()
+	{
+		return &m_object;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Switch::setSignal(bool m_signal)
+	{
+		m_signal = m_signal;
+
+		if (m_signal)
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+		else
+		{
+			m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+		}
+	}
+
+
+	bool Switch::getSignal() const
+	{
+		return m_signal;
+	}
+
+
+	bool Switch::signal() const
+	{
+		return m_signal;
+	}
+
+
+	////////////////////////////////
+
+
+	bool Switch::isMoving() const
+	{
+		return m_moving;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	float Switch::update(const sf::Vector2f& mousePosition, sf::Event& event, sf::Mouse::Button button, sf::View* view)
+	{
+		if (!m_object.isActive())
+			return 0.f;
+
+		if (this->isClicked(button, mousePosition, event))
+		{
+			m_signal ^= 1;
+
+			if (m_signal)
+			{
+				m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+				m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			}
+			else
+			{
+				m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+				m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+			}
+
+			return 1.f;
+		}
+
+		return 0.f;
+	}
+
+
+	////////////////////////////////
+
+
+	void Switch::SSC_click_update(const sf::Vector2f& mousePosition, sf::Event& event, sf::Mouse::Button button)
+	{
+		if (this->isClicked(button, mousePosition, event) && !m_moving)
+		{
+			m_moving = true;
+
+			m_signal ^= 1;
+		}
+	}
+
+
+	bool Switch::SmoothSignalChange(float speed, float dt)
+	{
+		if (m_moving)
+		{
+			if (m_signal)
+			{
+				m_texture_button.move(speed * dt, 0);
+				m_color_button.move(speed * dt, 0);
+			}
+			else
+			{
+				m_texture_button.move(-speed * dt, 0);
+				m_color_button.move(-speed * dt, 0);
+			}
+
+			if (m_texture_button.getPosition().x < m_object.getShapeCenter().x - m_object.getButton()->getSize().x * m_object.getScale().x * 0.5f)
+			{
+				m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+				m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+
+				m_moving = false;
+			}
+			else if (m_texture_button.getPosition().x > m_object.getShapeCenter().x + m_object.getButton()->getSize().x * m_object.getScale().x * 0.5f)
+			{
+				m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+				m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x + (m_object.getButton()->getSize().x * m_object.getScale().x) / 2, m_object.getShapeCenter().y));
+
+				m_moving = false;
+			}
+
+			return 1;
+		}
+		else return 0;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Switch::render(sf::RenderWindow* window)
+	{
+		m_object.render(window);
+
+		m_color_button.render(window);
+		m_texture_button.render(window);
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	bool Switch::created() const
+	{
+		return m_object.created();
+	}
+
+} // namespace ke

@@ -3,1476 +3,1705 @@
 namespace ke
 {
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//============== C O N S T R U C T O R S ,   D E S T R U C T O R S   A N D   O P E R A T O R S ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
-
-
-EquilTraingle::EquilTraingle()
-{
-    ///KEngine Triangle default constructor
-    /** KEngine Triangle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
-}
-
-
-EquilTraingle::EquilTraingle( float side_length,
-                              const sf::Vector2f& position,
-                              int origin,
-                              const std::wstring& text,
-                              unsigned int character_size,
-                              int text_position,
-                              const sf::Color& object_color,
-                              const sf::Color& text_color,
-                              float outline_thickness,
-                              const sf::Color& outline_color,
-                              unsigned int text_style,
-                              const sf::Vector2f& text_shift,
-                              int font,
-                              bool active )
-{
-    ///KEngine Triangle color constructor
-    /** KEngine Triangle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
-
-    this->texture_path = "";
-    this->texture_on = false;
-
-    this->active = active;
-
-    this->origin = origin;
-    this->text_position = text_position;
-    this->text_shift = text_shift;
-
-
-    this->shape.setRadius(side_length * sqrt_3 / 3);
-    this->shape.setPointCount(3);
-
-    this-> a = side_length;
-    this->shape.setPosition(position);
-
-    this->updateShape();
-
-    this->shape.setFillColor(object_color);
-    this->shape.setOutlineColor(outline_color);
-    this->shape.setOutlineThickness(outline_thickness);
-
-
-
-    this->text.setCharacterSize(character_size);
-
-
-    switch(font)
-    {
-    case Arial:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-
-    case Arial_Uni:
-        {
-            this->text.setFont(arial_uni);
-            this->text_font = Arial_Uni;
-        }
-        break;
-
-    case Calibri:
-        {
-            this->text.setFont(calibri);
-            this->text_font = Calibri;
-        }
-        break;
-
-    case ComicSans:
-        {
-            this->text.setFont(comic_sans);
-            this->text_font = ComicSans;
-        }
-        break;
-
-    case CourierNew:
-        {
-            this->text.setFont(courier_new);
-            this->text_font = CourierNew;
-        }
-        break;
-
-    case TimesNewRoman:
-        {
-            this->text.setFont(times_new_roman);
-            this->text_font = TimesNewRoman;
-        }
-        break;
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//============== C O N S T R U C T O R S ,   D E S T R U C T O R S   A N D   O P E R A T O R S ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
+
+
+	Triangle::Triangle()
+		: m_origin(MIDDLE_MIDDLE)
+		, a(0)
+		, m_texture_path(Settings::EmptyTexturePath())
+		, m_texture_set(false)
+		, m_shapeCenter(0, 0)
+		, m_physics(nullptr)
+		, m_text_shift(0, 0)
+		, m_text_position(MIDDLE_MIDDLE)
+		, m_text_font(Arial)
+		, m_active(false)
+		, m_created(false)
+	{
+
+	}
+
+
+	////////////////////////////////
+
+
+	Triangle::Triangle(
+		float side_length,
+		const sf::Vector2f& position,
+		int origin,
+		const std::wstring& text,
+		unsigned int character_size,
+		int text_position,
+		const sf::Color& object_color,
+		const sf::Color& text_color,
+		float outline_thickness,
+		const sf::Color& outline_color,
+		float rotation,
+		unsigned int text_style,
+		const sf::Vector2f& text_shift,
+		int font,
+		bool active)
+
+		: m_texture_path(Settings::EmptyTexturePath())
+		, m_texture_set(false)
+		, m_origin(origin)
+		, m_text_position(text_position)
+		, m_text_shift(text_shift)
+		, m_physics(nullptr)
+		, m_active(active)
+	{
+		m_shape.setRadius(side_length * sqrt_3 / 3);
+		m_shape.setPointCount(3);
+		m_shape.setPosition(position);
+		a = side_length;
+		m_shape.setRotation(rotation);
+
+		this->fullShapeUpdate();
+
+		m_shape.setFillColor(object_color);
+		m_shape.setOutlineColor(outline_color);
+		m_shape.setOutlineThickness(outline_thickness);
+
+
+		m_text.setCharacterSize(character_size);
+
+		this->fontUpdate(font);
+
+		m_text.setStyle(text_style);
+		m_text.setString(text);
+		m_text.rotate(rotation);
+
+		this->fullTextUpdate();
+
+		m_text.setFillColor(text_color);
+	}
+
+
+	////////////////////////////////
+
+
+	Triangle::Triangle(
+		float side_length,
+		const sf::Vector2f& position,
+		int origin,
+		const sf::Texture* texture,
+		float rotation,
+		bool active)
+
+		: m_origin(origin)
+		, m_text_position(MIDDLE_MIDDLE)
+		, m_text_shift(0, 0)
+		, m_physics(nullptr)
+		, m_active(active)
+		, m_created(true)
+	{
+		if (texture)
+		{
+			m_texture_path = Settings::UnknownTexturePathName();
+			m_texture = *texture;
+			m_texture_set = true;
+		}
+		else
+		{
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture.loadFromFile(m_texture_path);
+			m_texture_set = false;
+		}
+
+		m_shape.setRadius(side_length * sqrt_3 / 3);
+		m_shape.setPointCount(3);
+		m_shape.setPosition(position);
+		a = side_length;
+		m_shape.setRotation(rotation);
+
+		this->fullShapeUpdate();
+
+		m_shape.setTexture(&this->m_texture);
+		m_shape.setFillColor(Settings::DefaultTextureColor());
+	}
+
 
-    case TrebuchetMS:
-        {
-            this->text.setFont(trebuchet_MS);
-            this->text_font = TrebuchetMS;
-        }
-        break;
+	////////////////////////////////
 
-    case Verdana:
-        {
-            this->text.setFont(verdana);
-            this->text_font = Verdana;
-        }
-        break;
 
-    default:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-    }
+	Triangle::Triangle(
+		float side_length,
+		const sf::Vector2f& position,
+		int origin,
+		const std::string& filename,
+		float rotation,
+		bool active)
 
+		: m_texture_path(filename)
+		, m_origin(origin)
+		, m_text_position(MIDDLE_MIDDLE)
+		, m_text_shift(0, 0)
+		, m_physics(nullptr)
+		, m_active(active)
+		, m_created(true)
+	{
+		m_texture_set = true;
 
+		if (!m_texture.loadFromFile(m_texture_path))
+		{
+			throw_error("Rectangle::Rectange(...)", "could not load texture from the given path", "ERROR");
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture.loadFromFile(m_texture_path);
+			m_texture_set = false;
+		}
 
-    this->text.setStyle(text_style);
-    this->text.setString(text);
+		m_shape.setRadius(side_length * sqrt_3 / 3);
+		m_shape.setPointCount(3);
+		m_shape.setPosition(position);
+		a = side_length;
+		m_shape.setRotation(rotation);
 
-    this->updateText();
+		this->fullShapeUpdate();
 
-    this->text.setColor(text_color);
-}
+		m_shape.setTexture(&m_texture);
+		m_shape.setFillColor(Settings::DefaultTextureColor());
+	}
 
-EquilTraingle::EquilTraingle( float side_length,
-                              const sf::Vector2f& position,
-                              int origin,
-                              const sf::Texture* texture,
-                              bool acitve)
-{
-    ///KEngine Triangle texture constructor <br>
-    /// texture loading from other texture
-    /** KEngine Triangle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
 
-    this->active = active;
-    this->texture_on = true;
-    this->texture_path = "";
-    if (texture) this->texture = *texture;
+	////////////////////////////////
 
 
-    this->active = active;
+	Triangle::~Triangle()
+	{
 
+	}
 
-    this->origin = origin;
-    this->text_position = MIDDLE_MIDDLE;
-    this->text_shift = sf::Vector2f(0, 0);
 
 
-    this->shape.setRadius(side_length * sqrt_3 / 3);
-    this->shape.setPointCount(3);
+	////////////////////////////////////////////////////////////////
 
-    this->a = side_length;
-    this->shape.setPosition(position);
 
-    this->updateShape();
 
-    this->shape.setFillColor(sf::Color::Black);
-    this->shape.setTexture(&this->texture);
-}
+	Triangle::Triangle(Triangle& other)
+		: m_origin(other.getOrigin())
+		, m_text_position(other.getTextPosition())
+		, m_text_shift(other.getTextShift())
+		, m_active(other.isActive())
+		, m_created(true)
+	{
+		// checking if texture exists
+		if (other.isTextureSet())
+		{
+			m_texture_path = other.getTexturePath();
+			m_texture = *other.getTexture();
+			m_texture_set = true;
+			m_shape.setTexture(&m_texture);
+		}
+		else
+		{
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture_set = false;
+		}
+		
 
-EquilTraingle::EquilTraingle( float side_length,
-                              const sf::Vector2f& position,
-                              int origin,
-                              const std::string& texture_path,
-                              bool acitve)
-{
-    ///KEngine Triangle texture constructor <br>
-    /// texture loading directly from file
-    /** KEngine Triangle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
+		m_shape.setRadius(other.getRadius());
+		m_shape.setPointCount(3);
+		m_shape.setPosition(other.getPosition());
+		a = other.getSideSize();
+		m_shape.setRotation(other.getRotation());
 
-    this->active = active;
-    this->texture_on = true;
-    this->texture_path = "";
-    this->texture.loadFromFile(texture_path);
+		this->fullShapeUpdate();
 
+		m_shape.setFillColor(other.getFillColor());
+		m_shape.setOutlineColor(other.getOutlineColor());
+		m_shape.setOutlineThickness(other.getOutlineThickness());
 
-    this->active = active;
 
-
-    this->origin = origin;
-    this->text_position = MIDDLE_MIDDLE;
-    this->text_shift = sf::Vector2f(0, 0);
-
-
-    this->shape.setRadius(side_length * sqrt_3 / 3);
-    this->shape.setPointCount(3);
-
-    this->a = side_length;
-    this->shape.setPosition(position);
-
-    this->updateShape();
-
-    this->shape.setFillColor(sf::Color::Black);
-    this->shape.setTexture(&this->texture);
-}
-
-EquilTraingle::~EquilTraingle()
-{
-    ///KEngine Triangle destructor
-    /** KEngine Triangle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
-}
-
-
-EquilTraingle::EquilTraingle(EquilTraingle& other)
-{
-    ///KEngine Triangle copy constructor
-    /** KEngine Triangle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
-
-    this->texture_path = "";
-    this->texture_on = false;
+		m_text.setCharacterSize(other.getCharacterSize());
 
-    this->active = other.isActive();
+		this->fontUpdate(other.getFont());
 
-    this->origin = other.getOrigin();
-    this->text_position = other.getTextPosition();
-    this->text_shift = other.getTextShift();
-
+		m_text.setStyle(other.getTextStyle());
+		m_text.setString(other.getText());
+		m_text.setRotation(other.getRotation());
 
-    this->shape.setRadius(other.getRadius());
-    this->shape.setPointCount(3);
+		this->fullTextUpdate();
 
-    this-> a = other.getSideSize();
+		m_text.setFillColor(other.getTextColor());
 
-    this->updateShape();
+		
+		if (other.physics()) // when physics exists
+		{
+			m_physics->setTarget(this);
 
-    this->shape.setPosition(other.getPosition());
-    this->shape.setFillColor(other.getFillColor());
-    this->shape.setOutlineColor(other.getOutlineColor());
-    this->shape.setOutlineThickness(other.getOutlineThickness());
+			for (auto& i : *other.physics()->getForceList())
+				m_physics->addForce(i.first, i.second);
 
+			m_physics->setSpeed(other.physics()->getSpeed());
+			m_physics->setMass(other.physics()->getMass());
+			m_physics->setFriction(other.physics()->getFriction());
+		}
+	}
 
-    this->text.setCharacterSize(other.getCharacterSize());
 
-    switch(other.getFont())
-    {
-    case Arial:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
 
-    case Arial_Uni:
-        {
-            this->text.setFont(arial_uni);
-            this->text_font = Arial_Uni;
-        }
-        break;
+	////////////////////////////////////////////////////////////////
 
-    case Calibri:
-        {
-            this->text.setFont(calibri);
-            this->text_font = Calibri;
-        }
-        break;
 
-    case ComicSans:
-        {
-            this->text.setFont(comic_sans);
-            this->text_font = ComicSans;
-        }
-        break;
 
-    case CourierNew:
-        {
-            this->text.setFont(courier_new);
-            this->text_font = CourierNew;
-        }
-        break;
+	Triangle& Triangle::operator= (Triangle& other)
+	{
+		// checking if texture exists
+		if (other.isTextureSet())
+		{
+			m_texture_path = other.getTexturePath();
+			m_texture = *other.getTexture();
+			m_texture_set = true;
+			m_shape.setTexture(&m_texture);
+		}
+		else
+		{
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture_set = false;
+		}
 
-    case TimesNewRoman:
-        {
-            this->text.setFont(times_new_roman);
-            this->text_font = TimesNewRoman;
-        }
-        break;
-
-    case TrebuchetMS:
-        {
-            this->text.setFont(trebuchet_MS);
-            this->text_font = TrebuchetMS;
-        }
-        break;
-
-    case Verdana:
-        {
-            this->text.setFont(verdana);
-            this->text_font = Verdana;
-        }
-        break;
-
-    default:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-    }
-
-
-
-    this->text.setStyle(other.getTextStyle());
-    this->text.setString(other.getText());
-
-    this->updateText();
-
-    this->text.setColor(other.getTextColor());
-}
-
-
-EquilTraingle& EquilTraingle::operator= (EquilTraingle& other)
-{
-    ///KEngine Triangle operator =
-    /** KEngine Triangle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
-
-    this->texture_path = "";
-    this->texture_on = false;
-
-    this->active = other.isActive();
 
-    this->origin = other.getOrigin();
-    this->text_position = other.getTextPosition();
-    this->text_shift = other.getTextShift();
-
-
-    this->shape.setRadius(other.getRadius());
-    this->shape.setPointCount(3);
-
-    this-> a = other.getSideSize();
-
-    this->updateShape();
-
-    this->shape.setPosition(other.getPosition());
-    this->shape.setFillColor(other.getFillColor());
-    this->shape.setOutlineColor(other.getOutlineColor());
-    this->shape.setOutlineThickness(other.getOutlineThickness());
-
-
-    this->text.setCharacterSize(other.getCharacterSize());
-
-    switch(other.getFont())
-    {
-    case Arial:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-
-    case Arial_Uni:
-        {
-            this->text.setFont(arial_uni);
-            this->text_font = Arial_Uni;
-        }
-        break;
-
-    case Calibri:
-        {
-            this->text.setFont(calibri);
-            this->text_font = Calibri;
-        }
-        break;
-
-    case ComicSans:
-        {
-            this->text.setFont(comic_sans);
-            this->text_font = ComicSans;
-        }
-        break;
+		m_origin = other.getOrigin();
+		m_text_position = other.getTextPosition();
+		m_text_shift = other.getTextShift();
 
-    case CourierNew:
-        {
-            this->text.setFont(courier_new);
-            this->text_font = CourierNew;
-        }
-        break;
-
-    case TimesNewRoman:
-        {
-            this->text.setFont(times_new_roman);
-            this->text_font = TimesNewRoman;
-        }
-        break;
-
-    case TrebuchetMS:
-        {
-            this->text.setFont(trebuchet_MS);
-            this->text_font = TrebuchetMS;
-        }
-        break;
-
-    case Verdana:
-        {
-            this->text.setFont(verdana);
-            this->text_font = Verdana;
-        }
-        break;
-
-    default:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-    }
-
-
-
-    this->text.setStyle(other.getTextStyle());
-    this->text.setString(other.getText());
-
-    this->updateText();
-
-    this->text.setColor(other.getTextColor());
-
-    return *this;
-}
-
-
-void EquilTraingle::create( float side_length,
-                              const sf::Vector2f& position,
-                              int origin,
-                              const std::wstring& text,
-                              unsigned int character_size,
-                              int text_position,
-                              const sf::Color& object_color,
-                              const sf::Color& text_color,
-                              float outline_thickness,
-                              const sf::Color& outline_color,
-                              unsigned int text_style,
-                              const sf::Vector2f& text_shift,
-                              int font,
-                              bool active )
-{
-    ///KEngine Triangle color create function <br>
-    ///use with default constructor
-    /** KEngine Triangle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
-
-    this->texture_path = "";
-    this->texture_on = false;
-
-    this->active = active;
-
-    this->origin = origin;
-    this->text_position = text_position;
-    this->text_shift = text_shift;
-
-
-    this->shape.setRadius(side_length * sqrt_3 / 3);
-    this->shape.setPointCount(3);
-
-    this-> a = side_length;
-    this->shape.setPosition(position);
-
-    this->updateShape();
-
-    this->shape.setFillColor(object_color);
-    this->shape.setOutlineColor(outline_color);
-    this->shape.setOutlineThickness(outline_thickness);
-
-
-
-    this->text.setCharacterSize(character_size);
-
-
-    switch(font)
-    {
-    case Arial:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-
-    case Arial_Uni:
-        {
-            this->text.setFont(arial_uni);
-            this->text_font = Arial_Uni;
-        }
-        break;
-
-    case Calibri:
-        {
-            this->text.setFont(calibri);
-            this->text_font = Calibri;
-        }
-        break;
-
-    case ComicSans:
-        {
-            this->text.setFont(comic_sans);
-            this->text_font = ComicSans;
-        }
-        break;
-
-    case CourierNew:
-        {
-            this->text.setFont(courier_new);
-            this->text_font = CourierNew;
-        }
-        break;
-
-    case TimesNewRoman:
-        {
-            this->text.setFont(times_new_roman);
-            this->text_font = TimesNewRoman;
-        }
-        break;
-
-    case TrebuchetMS:
-        {
-            this->text.setFont(trebuchet_MS);
-            this->text_font = TrebuchetMS;
-        }
-        break;
-
-    case Verdana:
-        {
-            this->text.setFont(verdana);
-            this->text_font = Verdana;
-        }
-        break;
+		m_shape.setRadius(other.getRadius());
+		m_shape.setPointCount(3);
+		m_shape.setPosition(other.getPosition());
+		a = other.getSideSize();
+		m_shape.setRotation(other.getRotation());
 
-    default:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-    }
+		this->fullShapeUpdate();
 
+		m_shape.setFillColor(other.getFillColor());
+		m_shape.setOutlineColor(other.getOutlineColor());
+		m_shape.setOutlineThickness(other.getOutlineThickness());
 
 
-    this->text.setStyle(text_style);
-    this->text.setString(text);
+		m_text.setCharacterSize(other.getCharacterSize());
 
-    this->updateText();
+		this->fontUpdate(other.getFont());
 
-    this->text.setColor(text_color);
-}
+		m_text.setStyle(other.getTextStyle());
+		m_text.setString(other.getText());
+		m_text.setRotation(other.getRotation());
 
+		this->fullTextUpdate();
 
-void EquilTraingle::create( float side_length,
-                            const sf::Vector2f& position,
-                            int origin,
-                            const sf::Texture* texture,
-                            bool acitve)
-{
-    ///KEngine Triangle texture create function <br>
-    ///use with default constructor <br>
-    /// texture loading from other texture
-    /** KEngine Triangle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
-
-    this->active = active;
-    this->texture_on = true;
-    this->texture_path = "";
-    if (texture) this->texture = *texture;
-
-
-    this->active = active;
-
-
-    this->origin = origin;
-    this->text_position = MIDDLE_MIDDLE;
-    this->text_shift = sf::Vector2f(0, 0);
-
-
-    this->shape.setRadius(side_length * sqrt_3 / 3);
-    this->shape.setPointCount(3);
-
-    this->a = side_length;
-    this->shape.setPosition(position);
-
-    this->updateShape();
-
-    this->shape.setFillColor(sf::Color::Black);
-    this->shape.setTexture(&this->texture);
-}
-
-
-void EquilTraingle::create( float side_length,
-                            const sf::Vector2f& position,
-                            int origin,
-                            const std::string& texture_path,
-                            bool acitve)
-{
-    ///KEngine Triangle texture create function <br>
-    ///use with default constructor <br>
-    /// texture loading directly from file
-    /** KEngine Triangle is an object based on sf::CircleShape that can
-        hold color or texture - basic object in the library, inherits from
-        class GuiObject*/
-
-    this->active = active;
-    this->texture_on = true;
-    this->texture_path = "";
-    this->texture.loadFromFile(texture_path);
-
-
-    this->active = active;
-
-
-    this->origin = origin;
-    this->text_position = MIDDLE_MIDDLE;
-    this->text_shift = sf::Vector2f(0, 0);
-
-
-    this->shape.setRadius(side_length * sqrt_3 / 3);
-    this->shape.setPointCount(3);
-
-    this->a = side_length;
-    this->shape.setPosition(position);
-
-    this->updateShape();
-
-    this->shape.setFillColor(sf::Color::Black);
-    this->shape.setTexture(&this->texture);
-}
-
-
-
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============                       P R I V A T E   F U N C T I O N S                       ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
-
-
-
-void EquilTraingle::updateShape()
-{
-    ///KEngine Triangle private function used automatically
-
-    switch(this->origin)
-    {
-    case MIDDLE_TOP:
-        {
-            this->shape.setOrigin(sf::Vector2f(this->shape.getRadius(), 0));
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x, this->shape.getPosition().y + this->shape.getRadius());
-        }
-        break;
-
-    case MIDDLE_MIDDLE:
-        {
-            this->shape.setOrigin(sf::Vector2f(this->shape.getRadius(), this->shape.getRadius()));
-            this->shapeCentre = this->shape.getPosition();
-        }
-        break;
-
-    case LEFT_BOTTOM:
-        {
-            this->shape.setOrigin(sf::Vector2f(0, a * sqrt_3 / 2));
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x + this->shape.getRadius(), this->shape.getPosition().y - a * sqrt_3 / 6);
-        }
-        break;
+		m_text.setFillColor(other.getTextColor());
 
-    case MIDDLE_BOTTOM:
-        {
-            this->shape.setOrigin(sf::Vector2f(this->shape.getRadius(), a * sqrt_3 / 2));
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x, this->shape.getPosition().y - a * sqrt_3 / 6);
-        }
-        break;
 
-    case RIGHT_BOTTOM:
-        {
-            this->shape.setOrigin(sf::Vector2f(this->shape.getRadius() * 2, a * sqrt_3 / 2));
-            this->shapeCentre = sf::Vector2f(this->shape.getPosition().x - this->shape.getRadius(), this->shape.getPosition().y - shape.getRadius() / 2);
-        }
-        break;
+		if (other.physics()) // when physics exists
+		{
+			m_physics->setTarget(this);
 
-    default:
-        {
-            this->shape.setOrigin(sf::Vector2f(a / 2, this->shape.getRadius()));
-            this->shapeCentre = this->shape.getPosition();
-        }
-        break;
-    }
-}
+			for (auto& i : *other.physics()->getForceList())
+				m_physics->addForce(i.first, i.second);
 
+			m_physics->setSpeed(other.physics()->getSpeed());
+			m_physics->setMass(other.physics()->getMass());
+			m_physics->setFriction(other.physics()->getFriction());
+		}
 
-void EquilTraingle::updateText()
-{
-    ///KEngine Triangle private function used automatically
+		m_active = other.isActive();
+		m_created = true;
 
-    switch (text_position)
-    {
-    case MIDDLE_MIDDLE:
-        {
-            this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
+		return *this;
+	}
 
-    case MIDDLE_BOTTOM:
-        {
-            this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + a * sqrt_3 / 6 + text_shift.y));
-        }
-        break;
 
-    default:
-        {
-            this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
-    }
-}
 
+	////////////////////////////////////////////////////////////////
 
 
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============                           M O D    F U N C T I O N S                          ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
+	void Triangle::create(float side_length,
+		const sf::Vector2f& position,
+		int origin,
+		const std::wstring& text,
+		unsigned int character_size,
+		int text_position,
+		const sf::Color& object_color,
+		const sf::Color& text_color,
+		float outline_thickness,
+		const sf::Color& outline_color,
+		float rotation,
+		unsigned int text_style,
+		const sf::Vector2f& text_shift,
+		int font,
+		bool active)
+	{
+		m_texture_path = Settings::EmptyTexturePath();
+		m_texture_set = false;
 
+		m_origin = origin;
+		m_text_position = text_position;
+		m_text_shift = text_shift;
 
 
+		m_shape.setRadius(side_length * sqrt_3 / 3);
+		m_shape.setPointCount(3);
+		m_shape.setPosition(position);
+		a = side_length;
+		m_shape.setRotation(rotation);
 
-void EquilTraingle::setPosition(const sf::Vector2f& position)
-{
-    ///sets KEngine Triangle's position
+		this->fullShapeUpdate();
 
-    this->shape.setPosition(position);
+		m_shape.setFillColor(object_color);
+		m_shape.setOutlineColor(outline_color);
+		m_shape.setOutlineThickness(outline_thickness);
 
-    this->updateShape();
-    this->updateText();
-}
 
-void EquilTraingle::setPosition(float x, float y)
-{
-    ///sets KEngine Triangle's position
+		m_text.setCharacterSize(character_size);
 
-    this->setPosition(sf::Vector2f(x, y));
-}
+		this->fontUpdate(font);
 
-sf::Vector2f EquilTraingle::getPosition() const
-{
-    ///returns KEngine Triangle's position
+		m_text.setStyle(text_style);
+		m_text.setString(text);
+		m_text.setRotation(rotation);
 
-    return this->shape.getPosition();
-}
+		this->fullTextUpdate();
 
+		m_text.setFillColor(text_color);
 
-void EquilTraingle::setSize(const sf::Vector2f& size)
-{
-    ///sets KEngine Triangle size
+		m_active = active;
+		m_created = true;
+	}
 
-    this->setSideSize(size.x);
-    this->setOrigin(this->origin);
-}
 
-void EquilTraingle::setSize(float size_x, float size_y)
-{
-    ///sets KEngine Triangle size
+	////////////////////////////////
 
-    this->setSideSize(size_x);
-    this->setOrigin(this->origin);
-}
 
-sf::Vector2f EquilTraingle::getSize() const
-{
-    ///returns KEngine Triangle size
+	void Triangle::create(float side_length,
+		const sf::Vector2f& position,
+		int origin,
+		const sf::Texture* texture,
+		float rotation,
+		bool active)
+	{
+		// checking if texture exists
+		if (texture)
+		{
+			m_texture_path = Settings::UnknownTexturePathName();
+			m_texture = *texture;
+			m_texture_set = true;
+		}
+		else
+		{
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture.loadFromFile(m_texture_path);
+			m_texture_set = false;
+		}
 
-    sf::Vector2f temp(this->a, this->a * sqrt_3 / 2);
+		m_origin = origin;
+		m_text_position = MIDDLE_MIDDLE;
+		m_text_shift = sf::Vector2f(0, 0);
 
-    return temp;
-}
 
+		m_shape.setRadius(side_length * sqrt_3 / 3);
+		m_shape.setPointCount(3);
+		m_shape.setPosition(position);
+		a = side_length;
+		m_shape.setRotation(rotation);
 
-void EquilTraingle::move(const sf::Vector2f& offset)
-{
-    ///moves KEngine Triangle by offset (px)
+		this->fullShapeUpdate();
 
-    this->shape.move(offset);
+		m_shape.setTexture(&m_texture);
+		m_shape.setFillColor(Settings::DefaultTextureColor());
 
-    this->updateShape();
-    this->updateText();
-}
+		m_active = active;
+		m_created = true;
+	}
 
-void EquilTraingle::move(float offset_x, float offset_y)
-{
-    ///moves KEngine Triangle by offset (px)
 
-    this->move(sf::Vector2f(offset_x, offset_y));
-}
+	////////////////////////////////
 
 
-void EquilTraingle::setRadius(float radius)
-{
-    ///sets radius of KEngine Triangle
+	void Triangle::create(float side_length,
+		const sf::Vector2f& position,
+		int origin,
+		const std::string& filename,
+		float rotation,
+		bool active)
+	{
+		m_texture_path = filename;
+		m_texture_set = true;
 
-    this->shape.setRadius(radius);
+		if (!m_texture.loadFromFile(m_texture_path))
+		{
+			throw_error("Rectangle::Rectange(...)", "could not load texture from the given path", "ERROR");
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture.loadFromFile(m_texture_path);
+			m_texture_set = false;
+		}
 
-    this->updateShape();
-    this->updateText();
-}
 
-float EquilTraingle::getRadius() const
-{
-    ///returns radius of KEngine Triangle
+		m_origin = origin;
+		m_text_position = MIDDLE_MIDDLE;
+		m_text_shift = sf::Vector2f(0, 0);
 
-    return this->shape.getRadius();
-}
 
-void EquilTraingle::setSideSize(float a)
-{
-    ///sets length of the KEngine Circle's side
+		m_shape.setRadius(side_length * sqrt_3 / 3);
+		m_shape.setPointCount(3);
+		m_shape.setPosition(position);
+		a = side_length;
+		m_shape.setRotation(rotation);
 
-    this->shape.setRadius(a * sqrt_3 / 3);
+		this->fullShapeUpdate();
 
-    this->updateShape();
-    this->updateText();
-}
+		this->m_shape.setTexture(&m_texture);
+		this->m_shape.setFillColor(Settings::DefaultTextureColor());
 
-float EquilTraingle::getSideSize() const
-{
-    ///returns length of the KEngine Circle's side
-
-    return 3 * this->shape.getRadius() / sqrt_3;
-}
+		m_active = active;
+		m_created = true;
+	}
 
-void EquilTraingle::setText(const std::wstring& text)
-{
-    ///changes String of KEngine Triangle's text (std::wstring)
-
-    this->text.setString(text);
-    this->updateText();
-}
-
-std::wstring EquilTraingle::getText() const
-{
-    ///returns String of KEngine Triangle's text (std::wstring)
-
-    return this->text.getString();
-}
-
-sf::CircleShape* EquilTraingle::getShape()
-{
-    ///returns pointer to sf::CircleShape that this KEngine Triangle uses
-
-    return &shape;
-}
-
-sf::Text* EquilTraingle::getSfText()
-{
-    ///returns pointer to sf::Text that this KEngine Triangle uses
-
-    return &text;
-}
-
-void EquilTraingle::setOrigin(int origin)
-{
-    ///changes origin of the KEngine Triangle
-    /**available origins: <br>
-      * MIDDLE_TOP    = top <br>
-      * MIDDLE_MIDDLE = center <br>
-      * RIGHT_BOTTOM  = bottom right corner <br>
-      * MIDDLE_BOTTOM = bottom <br>
-      * LEFT_BOTTOM   = bottom left corner*/
-
-    this->origin = origin;
-
-    this->updateShape();
-    this->updateText();
-}
-
-int EquilTraingle::getOrigin() const
-{
-    ///returns origin of the KEngine Triangle
-    /**available origins: <br>
-      * MIDDLE_TOP    = top <br>
-      * MIDDLE_MIDDLE = center <br>
-      * RIGHT_BOTTOM  = bottom right corner <br>
-      * MIDDLE_BOTTOM = bottom <br>
-      * LEFT_BOTTOM   = bottom left corner*/
-
-    return this->origin;
-}
-
-void EquilTraingle::setRotation(float angle)
-{
-    ///rotates, use it but only when you have to (not working well)
-
-    this->shape.setRotation(angle);
-    this->text.setRotation(angle);
-
-    if (this->origin == MIDDLE_MIDDLE)
-    {
-
-        if (angle == 0)
-
-            switch (text_position)
-            {
-            case MIDDLE_MIDDLE:
-            {
-                //this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-                this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + text_shift.y));
-            }
-            break;
-
-            case MIDDLE_BOTTOM:
-            {
-                //this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height));
-                this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + a * sqrt_3 / 6 + text_shift.y));
-            }
-            break;
-
-            default:
-            {
-                //this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-                this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + text_shift.y));
-            }
-            break;
-            }
-    }
-    else if (angle == 90)
-    {
-
-        switch (text_position)
-        {
-        case MIDDLE_MIDDLE:
-        {
-            //this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
-
-        case MIDDLE_BOTTOM:
-        {
-            //this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x - a * sqrt_3 / 6 + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
-
-        default:
-        {
-            //this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
-        }
-    }
-    else if (angle == 180)
-    {
-
-        switch (text_position)
-        {
-        case MIDDLE_MIDDLE:
-        {
-            //this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
-
-        case MIDDLE_BOTTOM:
-        {
-            //this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y - a * sqrt_3 / 6 + text_shift.y));
-        }
-        break;
-
-        default:
-        {
-            //this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
-        }
-
-    }
-    else if (angle == 270)
-    {
-
-        switch (text_position)
-        {
-        case MIDDLE_MIDDLE:
-        {
-            //this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
-
-        case MIDDLE_BOTTOM:
-        {
-            //this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + a * sqrt_3 / 6 + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
-
-        default:
-        {
-            //this->text.setOrigin(sf::Vector2f(this->text.getLocalBounds().left + this->text.getLocalBounds().width / 2, this->text.getLocalBounds().top + this->text.getLocalBounds().height / 2));
-            this->text.setPosition(sf::Vector2f(this->shapeCentre.x + text_shift.x, this->shapeCentre.y + text_shift.y));
-        }
-        break;
-        }
-    }
-}
-
-void EquilTraingle::Rotate(float angle)
-{
-    ///rotates, don't really use it
-
-    this->shape.rotate(angle);
-    this->text.rotate(angle);
-}
-
-float EquilTraingle::getRotation() const
-{
-    ///returns KEngine Triangle's rotation
-
-    return this->shape.getRotation();
-}
-
-
-void EquilTraingle::setPositionByCentre(const sf::Vector2f& postion)
-{
-    ///sets position by the centre of the object
-
-    sf::Vector2f delta(this->shape.getPosition().x - this->shapeCentre.x, this->shape.getPosition().y - this->shapeCentre.y);
-
-    this->setPosition(postion.x + delta.x, postion.y + delta.y);
-}
-
-sf::Vector2f EquilTraingle::getShapeCentre() const
-{
-    ///returns center of KEngine Triangle
-
-    return shapeCentre;
-}
-
-
-void EquilTraingle::setScale(const sf::Vector2f& factors)
-{
-    ///sets KEngine Triangle's scale
-
-    this->shape.setScale(factors);
-    this->text.setScale(factors);
-}
-
-void EquilTraingle::setScale(float factor_x, float factor_y)
-{
-    ///sets KEngine Triangle's scale
-
-    this->setScale(sf::Vector2f(factor_x, factor_y));
-}
-
-void EquilTraingle::scale(const sf::Vector2f& factors)
-{
-    ///scales KEngine Triangle's scale
-
-    this->shape.scale(factors);
-    this->text.scale(factors);
-}
-
-sf::Vector2f EquilTraingle::getScale() const
-{
-    ///returns scale of the KEngine Triangle
-
-    return this->shape.getScale();
-}
-
-void EquilTraingle::setTexture(const sf::Texture* texture)
-{
-    ///changes KEngine Triangle texture, idk if that works
-    /// setting texture from other texture
-
-    this->texture = *texture;
-    this->shape.setTexture(&this->texture);
-    this->texture_on = true;
-}
-
-void EquilTraingle::setTexture(const std::string& texture_path)
-{
-    ///changes KEngine Triangle texture, idk if that works
-    /// setting texture directly from file
-
-    this->texture_path = texture_path;
-    this->texture.loadFromFile(texture_path);
-    this->shape.setTexture(&this->texture);
-    this->texture_on = true;
-}
-
-const sf::Texture* EquilTraingle::getTexture() const
-{
-    ///returns pointer to KEngine Triangle's texture
-    /// if there's no texture, it returns nullptr
-
-    if (!this->texture_on)
-        return nullptr;
-    else
-        return this->shape.getTexture();
-}
-
-std::string EquilTraingle::getTexturePath() const
-{
-    ///just don't use it
-
-    return this->texture_path;
-}
-
-
-void EquilTraingle::setFillColor(const sf::Color& color)
-{
-    ///sets KEngine Triangle's fill color
-
-    this->shape.setFillColor(color);
-}
-
-const sf::Color &EquilTraingle::getFillColor() const
-{
-    ///returns KEngine Triangle's fill color
-
-    return this->shape.getFillColor();
-}
-
-void EquilTraingle::setTextColor(const sf::Color& text_color)
-{
-    ///sets KEngine Triangle's text fill color
-
-    this->text.setColor(text_color);
-}
-
-const sf::Color& EquilTraingle::getTextColor() const
-{
-    ///returns KEngine Triangle's text fill color
-
-    return this->text.getColor();
-}
-
-void EquilTraingle::setOutlineColor(const sf::Color& outline_color)
-{
-    ///sets KEngine Triangle's outline color
-
-    this->shape.setOutlineColor(outline_color);
-}
-
-const sf::Color& EquilTraingle::getOutlineColor() const
-{
-    ///returns KEngine Triangle's outline color
-
-    return this->shape.getOutlineColor();
-}
-
-void EquilTraingle::setOutlineThickness(float outline_thickness)
-{
-    ///sets KEngine Triangle's outline thickness
-
-    this->shape.setOutlineThickness(outline_thickness);
-}
-
-float EquilTraingle::getOutlineThickness() const
-{
-    ///returns KEngine Triangle's outline thickness
-
-    return this->shape.getOutlineThickness();
-}
-
-void EquilTraingle::setTextPosition(int position, const sf::Vector2f& text_shift)
-{
-    ///sets KEngine Triangle's text position and text shift
-    /**available origins: <br>
-      * MIDDLE_MIDDLE = center <br>
-      * MIDDLE_BOTTOM = bottom <br> */
-
-    this->text_position = text_position;
-    this->text_shift = text_shift;
-
-    this->updateText();
-}
-
-int EquilTraingle::getTextPosition() const
-{
-    ///returns KEngine Triangle's text position and text shift
-    /**available origins: <br>
-      * MIDDLE_MIDDLE = center <br>
-      * MIDDLE_BOTTOM = bottom <br> */
-
-    return this->text_position;
-}
-
-sf::Vector2f EquilTraingle::getTextShift() const
-{
-    ///returns KEngine Triangle's text shift
-
-    return text_shift;
-}
-
-
-
-void EquilTraingle::setTextStyle(int style)
-{
-    ///sets KEngine Triangle's text style
-
-    this->text.setStyle(style);
-}
-
-unsigned int EquilTraingle::getTextStyle() const
-{
-    ///returns KEngine Triangle's text style
-
-    return this->text.getStyle();
-}
-
-void EquilTraingle::setFont(int font)
-{
-    ///sets KEngine Triangle's font
-    /**  available fonts <br>
-      *  airal <br>
-      *  airal unicode <br>
-      *  calimbri <br>
-      *  camic sans <br>
-      *  courier new <br>
-      *  times now roman <br>
-      *  trebuchet MS <br>
-      *  verdana */
-
-    switch(font)
-    {
-    case Arial:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-
-    case Arial_Uni:
-        {
-            this->text.setFont(arial_uni);
-            this->text_font = Arial_Uni;
-        }
-        break;
-
-    case Calibri:
-        {
-            this->text.setFont(calibri);
-            this->text_font = Calibri;
-        }
-        break;
-
-    case ComicSans:
-        {
-            this->text.setFont(comic_sans);
-            this->text_font = ComicSans;
-        }
-        break;
-
-    case CourierNew:
-        {
-            this->text.setFont(courier_new);
-            this->text_font = CourierNew;
-        }
-        break;
-
-    case TimesNewRoman:
-        {
-            this->text.setFont(times_new_roman);
-            this->text_font = TimesNewRoman;
-        }
-        break;
-
-    case TrebuchetMS:
-        {
-            this->text.setFont(trebuchet_MS);
-            this->text_font = TrebuchetMS;
-        }
-        break;
-
-    case Verdana:
-        {
-            this->text.setFont(verdana);
-            this->text_font = Verdana;
-        }
-        break;
-
-    default:
-        {
-            this->text.setFont(arial);
-            this->text_font = Arial;
-        }
-        break;
-    }
-
-    this->updateText();
-}
-
-int EquilTraingle::getFont() const
-{
-    ///returns KEngine Triangle's font
-    /**  available fonts <br>
-      *  airal <br>
-      *  airal unicode <br>
-      *  calimbri <br>
-      *  camic sans <br>
-      *  courier new <br>
-      *  times now roman <br>
-      *  trebuchet MS <br>
-      *  verdana */
-
-    return this->text_font;
-}
-
-
-void EquilTraingle::setCharacterSize(unsigned int char_size)
-{
-    ///sets KEngine Triangle's text character size
-
-    this->text.setCharacterSize(char_size);
-}
-
-unsigned int EquilTraingle::getCharacterSize() const
-{
-    ///returns KEngine Triangle's text character size
-
-    return text.getCharacterSize();
-}
-
-
-
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============          R E N D E R   A N D   B E H A V I O U R   F U N C T I O N S          ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
-
-
-
-bool EquilTraingle::isInvaded(const sf::Vector2f& mousePosition) const
-{
-    ///if mouse is on KEngine Triangle, returns true (90, 180 and 270 degree angles also work!)
-
-    if (this->shape.getRotation() == 0)
-    {
-        sf::Vector2f bottom;
-        bottom.x = shapeCentre.x;
-        bottom.y = shapeCentre.y + this->shape.getRadius() / 2 * this->shape.getScale().x;
-
-        if ( mousePosition.y < bottom.y &&
-             ((mousePosition.x - bottom.x) / tan(30 * (3.1415 / 180)) < (mousePosition.y - (shapeCentre.y - shape.getRadius() * shape.getScale().x)) &&
-             -((mousePosition.x - bottom.x) / tan(30 * (3.1415 / 180))) < (mousePosition.y - (shapeCentre.y - shape.getRadius() * shape.getScale().x))))
-                return true;
-        else    return false;
-    }
-
-    else if (this->shape.getRotation() == 90)
-    {
-        sf::Vector2f bottom;
-        bottom.x = shapeCentre.x - this->shape.getRadius() / 2 * this->shape.getScale().x;
-        bottom.y = shapeCentre.y;
-
-        if ( mousePosition.x > bottom.x &&
-             ((mousePosition.y - bottom.y) / tan(30 * (3.1415 / 180)) < ((shapeCentre.x + shape.getRadius() * shape.getScale().x) - mousePosition.x) &&
-             -((mousePosition.y - bottom.y) / tan(30 * (3.1415 / 180))) < ((shapeCentre.x + shape.getRadius() * shape.getScale().x)) - mousePosition.x))
-                return true;
-        else    return false;
-    }
-
-    else if (this->shape.getRotation() == 180)
-    {
-        sf::Vector2f bottom;
-        bottom.x = shapeCentre.x;
-        bottom.y = shapeCentre.y - this->shape.getRadius() / 2 * this->shape.getScale().x;
-
-        if ( mousePosition.y > bottom.y &&
-             ((mousePosition.x - bottom.x) / tan(30 * (3.1415 / 180)) < ((shapeCentre.y + shape.getRadius() * shape.getScale().x) - mousePosition.y) &&
-             -((mousePosition.x - bottom.x) / tan(30 * (3.1415 / 180))) < ((shapeCentre.y + shape.getRadius() * shape.getScale().x) - mousePosition.y)))
-                return true;
-        else    return false;
-    }
-
-    else if (this->shape.getRotation() == 270)
-    {
-        sf::Vector2f bottom;
-        bottom.x = shapeCentre.x + this->shape.getRadius() / 2 * this->shape.getScale().x;
-        bottom.y = shapeCentre.y;
-
-        if ( mousePosition.x < bottom.x &&
-             ((mousePosition.y - bottom.y) / tan(30 * (3.1415 / 180)) < (mousePosition.x - (shapeCentre.x - shape.getRadius() * shape.getScale().x)) &&
-             -((mousePosition.y - bottom.y) / tan(30 * (3.1415 / 180))) < (mousePosition.x - (shapeCentre.x - shape.getRadius() * shape.getScale().x))))
-                return true;
-        else    return false;
-    }
-    else return false;
-}
-
-bool EquilTraingle::isInvaded_rect(const sf::Vector2f& mousePosition) const
-{
-    ///if mouse is on KEngine Triangle, returns true, but it the hitboxes are like rectangle
-
-    if (mousePosition.x > this->shapeCentre.x - this->shape.getRadius() * this->shape.getScale().x &&
-        mousePosition.x < this->shapeCentre.x + this->shape.getRadius() * this->shape.getScale().x &&
-        mousePosition.y > this->shapeCentre.y - this->shape.getRadius() * this->shape.getScale().y &&
-        mousePosition.y < this->shapeCentre.y + this->shape.getRadius() / 2 * this->shape.getScale().y   )
-                return true;
-        else    return false;
-}
-
-bool EquilTraingle::isClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
-{
-    ///if mouse is on KEngine Triangle and the right button is clicked, returns true (use in pollEvent loop)
-
-    if (this->isInvaded(mousePosition) && event.type == sf::Event::MouseButtonPressed && event.key.code == button)
-                return true;
-        else    return false;
-}
-
-bool EquilTraingle::isActive() const
-{
-    ///if KEngine Triangle is displayed, returns true
-
-    return this->active;
-}
-
-void EquilTraingle::setActiveStatus(bool status)
-{
-    ///if KEngine Triangle is active, it is displayed on the screen
-
-    this->active = status;
-}
-
-float EquilTraingle::update(const sf::Vector2f& mousePosition, sf::Event& event, sf::Mouse::Button button, sf::View* view)
-{
-    ///rounds text position to integers
-
-    this->text.setPosition(sf::Vector2f(static_cast<int>(this->text.getPosition().x), static_cast<int>(this->text.getPosition().y)));
-
-    return 0;
-}
-
-void EquilTraingle::render(sf::RenderWindow* window)
-{
-    ///displays KEngine Triangle on the screen, if active of course
-
-    if (this->active)
-    {
-        window->draw(this->shape);
-        window->draw(this->text);
-    }
-}
-
-}
+
+
+
+
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============                       P R I V A T E   F U N C T I O N S                       ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
+
+
+
+
+
+	void Triangle::shapeUpdate()
+	{
+		switch (m_origin)
+		{
+		case MIDDLE_TOP:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x, m_shape.getPosition().y + m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
+
+		case MIDDLE_MIDDLE:
+		{
+			m_shapeCenter = m_shape.getPosition();
+		}
+		break;
+
+		case LEFT_BOTTOM:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x + m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y - a * sqrt_3 / 6 * m_shape.getScale().y);
+		}
+		break;
+
+		case MIDDLE_BOTTOM:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x, m_shape.getPosition().y - a * sqrt_3 / 6 * m_shape.getScale().y);
+		}
+		break;
+
+		case RIGHT_BOTTOM:
+		{
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x - m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y - m_shape.getRadius() * m_shape.getScale().y / 2);
+		}
+		break;
+
+		default:
+		{
+			m_shapeCenter = m_shape.getPosition();
+			throw_error("Triangle::shapeUpdate()", "Given shape origin is incorrect", "ERROR");
+		}
+		break;
+		}
+	}
+
+
+	////////////////////////////////
+
+
+	void Triangle::fullShapeUpdate()
+	{
+		switch (m_origin)
+		{
+		case MIDDLE_TOP:
+		{
+			m_shape.setOrigin(sf::Vector2f(m_shape.getRadius(), 0));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x, m_shape.getPosition().y + m_shape.getRadius() * m_shape.getScale().y);
+		}
+		break;
+
+		case MIDDLE_MIDDLE:
+		{
+			m_shape.setOrigin(sf::Vector2f(m_shape.getRadius(), m_shape.getRadius()));
+			m_shapeCenter = m_shape.getPosition();
+		}
+		break;
+
+		case LEFT_BOTTOM:
+		{
+			m_shape.setOrigin(sf::Vector2f(0, a * sqrt_3 / 2));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x + m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y - a * sqrt_3 / 6 * m_shape.getScale().y);
+		}
+		break;
+
+		case MIDDLE_BOTTOM:
+		{
+			m_shape.setOrigin(sf::Vector2f(m_shape.getRadius(), a * sqrt_3 / 2));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x, m_shape.getPosition().y - a * sqrt_3 / 6 * m_shape.getScale().y);
+		}
+		break;
+
+		case RIGHT_BOTTOM:
+		{
+			m_shape.setOrigin(sf::Vector2f(m_shape.getRadius() * 2, a * sqrt_3 / 2));
+			m_shapeCenter = sf::Vector2f(m_shape.getPosition().x - m_shape.getRadius() * m_shape.getScale().x, m_shape.getPosition().y - m_shape.getRadius() * m_shape.getScale().y / 2);
+		}
+		break;
+
+		default:
+		{
+			m_shape.setOrigin(sf::Vector2f(m_shape.getRadius(), m_shape.getRadius()));
+			m_shapeCenter = m_shape.getPosition();
+			throw_error("Triangle::fullShapeUpdate()", "Given shape origin is incorrect", "ERROR");
+		}
+		break;
+		}
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::textUpdate()
+	{
+		switch (m_text_position)
+		{
+		case MIDDLE_MIDDLE:
+		{
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+		}
+		break;
+
+		case MIDDLE_BOTTOM:
+		{
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + a * sqrt_3 / 6 * m_shape.getScale().y + m_text_shift.y));
+		}
+		break;
+
+		default:
+		{
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			throw_error("Triangle::textUpdate()", "Given text position is incorrect", "ERROR");
+		}
+		break;
+		}
+	}
+
+
+	////////////////////////////////
+
+
+	void Triangle::fullTextUpdate()
+	{
+		switch (m_text_position)
+		{
+		case MIDDLE_MIDDLE:
+		{
+			m_text.setOrigin(sf::Vector2f(m_text.getLocalBounds().left + m_text.getLocalBounds().width / 2, m_text.getLocalBounds().top + m_text.getLocalBounds().height / 2));
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+		}
+		break;
+
+		case MIDDLE_BOTTOM:
+		{
+			m_text.setOrigin(sf::Vector2f(m_text.getLocalBounds().left + m_text.getLocalBounds().width / 2, m_text.getLocalBounds().top + m_text.getLocalBounds().height));
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + a * sqrt_3 / 6 * m_shape.getScale().y + m_text_shift.y));
+		}
+		break;
+
+		default:
+		{
+			m_text.setOrigin(sf::Vector2f(m_text.getLocalBounds().left + m_text.getLocalBounds().width / 2, m_text.getLocalBounds().top + m_text.getLocalBounds().height / 2));
+			m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			throw_error("Triangle::fullTextUpdate()", "Given text position is incorrect", "ERROR");
+		}
+		break;
+		}
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::fontUpdate(int font)
+	{
+		switch (font)
+		{
+		case Arial:
+		{
+			if (s_arial_status)
+			{
+				m_text.setFont(f_arial);
+				m_text_font = Arial;
+			}
+			else
+			{
+				throw_error("Triangle::fontUpdate()", "Arial font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case Arial_Uni:
+		{
+			if (s_arial_uni_status)
+			{
+				m_text.setFont(f_arial_unicode);
+				m_text_font = Arial_Uni;
+			}
+			else
+			{
+				throw_error("Triangle::fontUpdate()", "Arial Unicode font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case Calibri:
+		{
+			if (s_calibri_status)
+			{
+				m_text.setFont(f_calibri);
+				m_text_font = Calibri;
+			}
+			else
+			{
+				throw_error("Triangle::fontUpdate()", "Calibri font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case ComicSans:
+		{
+			if (s_comic_status)
+			{
+				m_text.setFont(f_comic_sans);
+				m_text_font = ComicSans;
+			}
+			else
+			{
+				throw_error("Triangle::fontUpdate()", "Comic Sans font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case CourierNew:
+		{
+			if (s_courier_status)
+			{
+				m_text.setFont(f_courier_new);
+				m_text_font = CourierNew;
+			}
+			else
+			{
+				throw_error("Triangle::fontUpdate()", "Courier New font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case TimesNewRoman:
+		{
+			if (s_times_nr_status)
+			{
+				m_text.setFont(f_times_new_roman);
+				m_text_font = TimesNewRoman;
+			}
+			else
+			{
+				throw_error("Triangle::fontUpdate()", "Times New Roman font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case TrebuchetMS:
+		{
+			if (s_trebuchet_status)
+			{
+				m_text.setFont(f_trebuchet_MS);
+				m_text_font = TrebuchetMS;
+			}
+			else
+			{
+				throw_error("Triangle::fontUpdate()", "TrebuchetMS font is not available", "ERROR");
+			}
+		}
+		break;
+
+		case Verdana:
+		{
+			if (s_verdana_status)
+			{
+				m_text.setFont(f_verdana);
+				m_text_font = Verdana;
+			}
+			else
+			{
+				throw_error("Triangle::fontUpdate()", "Verdana font is not available", "ERROR");
+			}
+		}
+		break;
+
+		default:
+		{
+			if (s_arial_status)
+			{
+				m_text.setFont(f_arial);
+				m_text_font = Arial;
+				throw_error("Triangle::fontUpdate()", "Given Font does not exist, setting to Arial", "ERROR");
+			}
+			else
+			{
+				throw_error("Triangle::fontUpdate()", "Defaut font (Arial) is not available", "ERROR");
+			}
+		}
+		break;
+		}
+	}
+
+
+
+
+
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============                           M O D    F U N C T I O N S                          ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
+
+
+
+
+
+	void Triangle::setPosition(const sf::Vector2f& position)
+	{
+		m_shape.setPosition(position);
+
+		this->shapeUpdate();
+		this->textUpdate();
+	}
+
+
+	void Triangle::setPosition(float x, float y)
+	{
+		this->setPosition(sf::Vector2f(x, y));
+	}
+
+
+	sf::Vector2f Triangle::getPosition() const
+	{
+		return m_shape.getPosition();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setSize(const sf::Vector2f& size)
+	{
+		this->setSideSize(size.x);
+		this->fullShapeUpdate();
+	}
+
+
+	void Triangle::setSize(float size_x, float size_y)
+	{
+		this->setSideSize(size_x);
+		this->fullShapeUpdate();
+	}
+
+
+	sf::Vector2f Triangle::getSize() const
+	{
+		return sf::Vector2f(a, a * sqrt_3 / 2);
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::move(const sf::Vector2f& offset)
+	{
+		m_shape.move(offset);
+
+		this->shapeUpdate();
+		this->textUpdate();
+	}
+
+
+	void Triangle::move(float offset_x, float offset_y)
+	{
+		this->move(sf::Vector2f(offset_x, offset_y));
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setRadius(float radius)
+	{
+		m_shape.setRadius(radius);
+		a = a * sqrt_3 / 3;
+
+		this->fullShapeUpdate();
+		this->fullTextUpdate();
+	}
+
+
+	float Triangle::getRadius() const
+	{
+		return m_shape.getRadius();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setSideSize(float a)
+	{
+		m_shape.setRadius(a * sqrt_3 / 3);
+		this->a = a;
+
+		this->fullShapeUpdate();
+		this->fullTextUpdate();
+	}
+
+
+	float Triangle::getSideSize() const
+	{
+		return 3 * m_shape.getRadius() / sqrt_3;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setText(const std::wstring& text)
+	{
+		m_text.setString(text);
+
+		this->fullTextUpdate();
+	}
+
+
+	std::wstring Triangle::getText() const
+	{
+		return m_text.getString();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	sf::CircleShape* Triangle::getShape()
+	{
+		return &m_shape;
+	}
+
+
+	sf::Text* Triangle::getSfText()
+	{
+		///returns pointer to sf::Text that this KEngine Triangle uses
+
+		return &m_text;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setOrigin(int origin)
+	{
+		///changes origin of the KEngine Triangle
+		/**available origins: <br>
+		  * MIDDLE_TOP    = top <br>
+		  * MIDDLE_MIDDLE = center <br>
+		  * RIGHT_BOTTOM  = bottom right corner <br>
+		  * MIDDLE_BOTTOM = bottom <br>
+		  * LEFT_BOTTOM   = bottom left corner*/
+
+		m_origin = origin;
+
+		this->fullShapeUpdate();
+		this->fullTextUpdate();
+	}
+
+
+	int Triangle::getOrigin() const
+	{
+		///returns origin of the KEngine Triangle
+		/**available origins: <br>
+		  * MIDDLE_TOP    = top <br>
+		  * MIDDLE_MIDDLE = center <br>
+		  * RIGHT_BOTTOM  = bottom right corner <br>
+		  * MIDDLE_BOTTOM = bottom <br>
+		  * LEFT_BOTTOM   = bottom left corner*/
+
+		return m_origin;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setRotation(float angle)
+	{
+		m_shape.setRotation(angle);
+		m_text.setRotation(angle);
+
+		if (m_origin == MIDDLE_MIDDLE)
+		{
+
+			if (angle == 0)
+
+				switch (m_text_position)
+				{
+				case MIDDLE_MIDDLE:
+				{
+					m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+				}
+				break;
+
+				case MIDDLE_BOTTOM:
+				{
+					m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + a * sqrt_3 / 6 + m_text_shift.y));
+				}
+				break;
+
+				default:
+				{
+					m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+				}
+				break;
+				}
+		}
+		else if (angle == 90)
+		{
+
+			switch (m_text_position)
+			{
+			case MIDDLE_MIDDLE:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+
+			case MIDDLE_BOTTOM:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x - a * sqrt_3 / 6 + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+
+			default:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+			}
+		}
+		else if (angle == 180)
+		{
+
+			switch (m_text_position)
+			{
+			case MIDDLE_MIDDLE:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+
+			case MIDDLE_BOTTOM:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y - a * sqrt_3 / 6 + m_text_shift.y));
+			}
+			break;
+
+			default:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+			}
+
+		}
+		else if (angle == 270)
+		{
+
+			switch (m_text_position)
+			{
+			case MIDDLE_MIDDLE:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+
+			case MIDDLE_BOTTOM:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + a * sqrt_3 / 6 + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+
+			default:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+			}
+		}
+	}
+
+
+	void Triangle::rotate(float angle)
+	{
+		m_shape.rotate(angle);
+		m_text.rotate(angle);
+
+		if (m_origin == MIDDLE_MIDDLE)
+		{
+
+			if (angle == 0)
+
+				switch (m_text_position)
+				{
+				case MIDDLE_MIDDLE:
+				{
+					m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+				}
+				break;
+
+				case MIDDLE_BOTTOM:
+				{
+					m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + a * sqrt_3 / 6 + m_text_shift.y));
+				}
+				break;
+
+				default:
+				{
+					m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+				}
+				break;
+				}
+		}
+		else if (angle == 90)
+		{
+
+			switch (m_text_position)
+			{
+			case MIDDLE_MIDDLE:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+
+			case MIDDLE_BOTTOM:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x - a * sqrt_3 / 6 + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+
+			default:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+			}
+		}
+		else if (angle == 180)
+		{
+
+			switch (m_text_position)
+			{
+			case MIDDLE_MIDDLE:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+
+			case MIDDLE_BOTTOM:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y - a * sqrt_3 / 6 + m_text_shift.y));
+			}
+			break;
+
+			default:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+			}
+
+		}
+		else if (angle == 270)
+		{
+
+			switch (m_text_position)
+			{
+			case MIDDLE_MIDDLE:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+
+			case MIDDLE_BOTTOM:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + a * sqrt_3 / 6 + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+
+			default:
+			{
+				m_text.setPosition(sf::Vector2f(m_shapeCenter.x + m_text_shift.x, m_shapeCenter.y + m_text_shift.y));
+			}
+			break;
+			}
+		}
+	}
+
+
+	float Triangle::getRotation() const
+	{
+		return m_shape.getRotation();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setPositionByCenter(const sf::Vector2f& postion)
+	{
+		this->setPosition(postion.x + m_shape.getPosition().x - m_shapeCenter.x, postion.y + m_shape.getPosition().y - m_shapeCenter.y);
+	}
+
+
+	sf::Vector2f Triangle::getShapeCenter() const
+	{
+		return m_shapeCenter;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setScale(const sf::Vector2f& factors)
+	{
+		m_shape.setScale(factors);
+		m_text.setScale(factors);
+
+		this->shapeUpdate();
+		this->textUpdate();
+	}
+
+
+	void Triangle::setScale(float factor_x, float factor_y)
+	{
+		this->setScale(sf::Vector2f(factor_x, factor_y));
+
+		this->shapeUpdate();
+		this->textUpdate();
+	}
+
+
+	void Triangle::scale(const sf::Vector2f& factors)
+	{
+		m_shape.scale(factors);
+		m_text.scale(factors);
+
+		this->shapeUpdate();
+		this->textUpdate();
+	}
+
+
+	sf::Vector2f Triangle::getScale() const
+	{
+		return m_shape.getScale();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setTexture(const sf::Texture* texture)
+	{
+		if (texture)
+		{
+			m_texture_path = Settings::UnknownTexturePathName();
+			m_texture = *texture;
+			m_texture_set = true;
+		}
+		else
+		{
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture.loadFromFile(m_texture_path);
+			m_texture_set = false;
+		}
+
+		this->m_shape.setTexture(&m_texture);
+	}
+
+
+	void Triangle::setTexture(const std::string& filename)
+	{
+		m_texture_set = true;
+		m_texture_path = filename;
+
+		if (!m_texture.loadFromFile(m_texture_path))
+		{
+			throw_error("Rectangle::Rectange(...)", "could not load texture from the given path", "ERROR");
+			m_texture_path = Settings::EmptyTexturePath();
+			m_texture.loadFromFile(m_texture_path);
+			m_texture_set = false;
+		}
+
+		m_shape.setTexture(&m_texture);
+	}
+
+
+	const sf::Texture* Triangle::getTexture() const
+	{
+		if (!m_texture_set)
+			return nullptr;
+		else
+			return &m_texture;
+	}
+
+
+	////////////////////////////////
+
+
+	void Triangle::addPathToTexture(const std::string& path)
+	{
+		m_texture_path = path;
+	}
+
+
+	std::string Triangle::getTexturePath() const
+	{
+		return m_texture_path;
+	}
+
+
+	bool Triangle::isTextureSet() const
+	{
+		return m_texture_set;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setFillColor(const sf::Color& color)
+	{
+		if (m_shape.getFillColor() != color)
+			m_shape.setFillColor(color);
+	}
+
+
+	const sf::Color& Triangle::getFillColor() const
+	{
+		return m_shape.getFillColor();
+	}
+
+
+	
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setTextColor(const sf::Color& text_color)
+	{
+		if (m_text.getFillColor() != text_color)
+			m_text.setFillColor(text_color);
+	}
+
+
+	const sf::Color& Triangle::getTextColor() const
+	{
+		return m_text.getFillColor();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setOutlineColor(const sf::Color& outline_color)
+	{
+		if (m_shape.getOutlineColor() != outline_color)
+			m_shape.setOutlineColor(outline_color);
+	}
+
+
+	const sf::Color& Triangle::getOutlineColor() const
+	{
+		return m_shape.getOutlineColor();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setOutlineThickness(float outline_thickness)
+	{
+		m_shape.setOutlineThickness(outline_thickness);
+	}
+
+
+	float Triangle::getOutlineThickness() const
+	{
+		return m_shape.getOutlineThickness();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setTextPosition(int position, const sf::Vector2f& text_shift)
+	{
+		///sets KEngine Triangle's text position and text shift
+		/**available origins: <br>
+		  * MIDDLE_MIDDLE = center <br>
+		  * MIDDLE_BOTTOM = bottom <br> */
+
+		m_text_position = position;
+		m_text_shift = text_shift;
+
+		this->fullTextUpdate();
+	}
+
+
+	int Triangle::getTextPosition() const
+	{
+		///returns KEngine Triangle's text position and text shift
+		/**available origins: <br>
+		  * MIDDLE_MIDDLE = center <br>
+		  * MIDDLE_BOTTOM = bottom <br> */
+
+		return m_text_position;
+	}
+
+
+	sf::Vector2f Triangle::getTextShift() const
+	{
+		return m_text_shift;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setTextStyle(int style)
+	{
+		m_text.setStyle(style);
+
+		this->fullTextUpdate();
+	}
+
+
+	unsigned int Triangle::getTextStyle() const
+	{
+		return m_text.getStyle();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setFont(int font)
+	{
+		///sets KEngine Triangle's font
+		/**  available fonts <br>
+		  *  airal <br>
+		  *  airal unicode <br>
+		  *  calimbri <br>
+		  *  camic sans <br>
+		  *  courier new <br>
+		  *  times now roman <br>
+		  *  trebuchet MS <br>
+		  *  verdana */
+
+		this->fontUpdate(font);
+
+		this->fullTextUpdate();
+	}
+
+
+	int Triangle::getFont() const
+	{
+		///returns KEngine Triangle's font
+		/**  available fonts <br>
+		  *  airal <br>
+		  *  airal unicode <br>
+		  *  calimbri <br>
+		  *  camic sans <br>
+		  *  courier new <br>
+		  *  times now roman <br>
+		  *  trebuchet MS <br>
+		  *  verdana */
+
+		return m_text_font;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::setCharacterSize(unsigned int char_size)
+	{
+		m_text.setCharacterSize(char_size);
+
+		this->fullTextUpdate();
+	}
+
+
+	unsigned int Triangle::getCharacterSize() const
+	{
+		return m_text.getCharacterSize();
+	}
+
+
+
+
+
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============          R E N D E R   A N D   B E H A V I O U R   F U N C T I O N S          ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
+
+
+
+
+
+	bool Triangle::isInvaded(const sf::Vector2f& mousePosition) const
+	{
+		if (m_shape.getRotation() == 0)
+		{
+			sf::Vector2f bottom;
+			bottom.x = m_shapeCenter.x;
+			bottom.y = m_shapeCenter.y + m_shape.getRadius() / 2 * m_shape.getScale().x;
+
+			if (mousePosition.y < bottom.y &&
+				((mousePosition.x - bottom.x) / tan(30 * (TO_RAD)) < (mousePosition.y - (m_shapeCenter.y - m_shape.getRadius() * m_shape.getScale().x)) &&
+					-((mousePosition.x - bottom.x) / tan(30 * (TO_RAD))) < (mousePosition.y - (m_shapeCenter.y - m_shape.getRadius() * m_shape.getScale().x))))
+				return true;
+			else    return false;
+		}
+
+		else if (m_shape.getRotation() == 90)
+		{
+			sf::Vector2f bottom;
+			bottom.x = m_shapeCenter.x - m_shape.getRadius() / 2 * m_shape.getScale().x;
+			bottom.y = m_shapeCenter.y;
+
+			if (mousePosition.x > bottom.x &&
+				((mousePosition.y - bottom.y) / tan(30 * (TO_RAD)) < ((m_shapeCenter.x + m_shape.getRadius() * m_shape.getScale().x) - mousePosition.x) &&
+					-((mousePosition.y - bottom.y) / tan(30 * (TO_RAD))) < ((m_shapeCenter.x + m_shape.getRadius() * m_shape.getScale().x)) - mousePosition.x))
+				return true;
+			else    return false;
+		}
+
+		else if (m_shape.getRotation() == 180)
+		{
+			sf::Vector2f bottom;
+			bottom.x = m_shapeCenter.x;
+			bottom.y = m_shapeCenter.y - m_shape.getRadius() / 2 * m_shape.getScale().x;
+
+			if (mousePosition.y > bottom.y &&
+				((mousePosition.x - bottom.x) / tan(30 * (TO_RAD)) < ((m_shapeCenter.y + m_shape.getRadius() * m_shape.getScale().x) - mousePosition.y) &&
+					-((mousePosition.x - bottom.x) / tan(30 * (TO_RAD))) < ((m_shapeCenter.y + m_shape.getRadius() * m_shape.getScale().x) - mousePosition.y)))
+				return true;
+			else    return false;
+		}
+
+		else if (m_shape.getRotation() == 270)
+		{
+			sf::Vector2f bottom;
+			bottom.x = m_shapeCenter.x + m_shape.getRadius() / 2 * m_shape.getScale().x;
+			bottom.y = m_shapeCenter.y;
+
+			if (mousePosition.x < bottom.x &&
+				((mousePosition.y - bottom.y) / tan(30 * (TO_RAD)) < (mousePosition.x - (m_shapeCenter.x - m_shape.getRadius() * m_shape.getScale().x)) &&
+					-((mousePosition.y - bottom.y) / tan(30 * (TO_RAD))) < (mousePosition.x - (m_shapeCenter.x - m_shape.getRadius() * m_shape.getScale().x))))
+				return true;
+			else    return false;
+		}
+
+		return false;
+	}
+
+
+	////////////////////////////////
+
+
+	bool Triangle::isInvaded_rect(const sf::Vector2f& mousePosition) const
+	{
+		//if (m_shape.getRotation() == 0.0f)
+		//	return abs(m_shapeCenter.x - mousePosition.x) < m_shape.getRadius() * m_shape.getScale().x && abs(m_shapeCenter.y - mousePosition.y) < m_shape.getRadius() * m_shape.getScale().y;
+
+		return 
+			(mousePosition.x > m_shapeCenter.x - a * m_shape.getScale().x * 0.5 &&
+			mousePosition.x < m_shapeCenter.x + a * m_shape.getScale().x * 0.5 &&
+			mousePosition.y > m_shapeCenter.y - m_shape.getRadius() * m_shape.getScale().y &&
+			mousePosition.y < m_shapeCenter.y + m_shape.getRadius() * m_shape.getScale().y * 0.5);
+	}
+
+
+	////////////////////////////////
+
+
+	bool Triangle::isClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
+	{
+		if (this->isInvaded(mousePosition) && event.type == sf::Event::MouseButtonPressed && event.key.code == button)
+			return true;
+		return false;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	bool Triangle::isActive() const
+	{
+		return m_active;
+	}
+
+
+	void Triangle::setActiveStatus(bool status)
+	{
+		m_active = status;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	float Triangle::update(const sf::Vector2f& mousePosition, sf::Event& event, sf::Mouse::Button button, sf::View* view)
+	{
+		if (m_active)
+			m_text.setPosition(sf::Vector2f(static_cast<int>(m_text.getPosition().x), static_cast<int>(m_text.getPosition().y)));
+
+		return m_active;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::render(sf::RenderWindow* window)
+	{
+		if (m_active)
+		{
+			window->draw(m_shape);
+			window->draw(m_text);
+		}
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void Triangle::initPhysics()
+	{
+		m_physics = std::make_unique<Physics>(this);
+	}
+
+
+	void Triangle::initPhysics(long double mass, float friction)
+	{
+		m_physics = std::make_unique<Physics>(this, mass, friction);
+	}
+
+
+	void Triangle::deletePhysics()
+	{
+		m_physics = nullptr;
+	}
+
+
+	////////////////////////////////
+
+
+	void Triangle::updatePhysics(const float dt)
+	{
+		if (m_physics != nullptr)
+			m_physics->update(dt);
+		else
+			throw_error("Rectangle::updatePhysics(...)", "physics are not initialized yet", "WARNING");
+	}
+
+
+	Physics* Triangle::physics()
+	{
+		return m_physics.get();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	bool Triangle::created() const
+	{
+		return m_created;
+	}
+
+
+} // namespace ke

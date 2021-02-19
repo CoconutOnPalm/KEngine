@@ -3,1307 +3,1658 @@
 namespace ke
 {
 
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// \ \ \ \ \ \ \
-//
-//  P  E  R  C  E  N  T  A  G  E    %
-//
-// / / / / / / /
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//============== C O N S T R U C T O R S ,   D E S T R U C T O R S   A N D   O P E R A T O R S ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
-
-
-PercentageBar::PercentageBar()
-{
-    ///KEngine PercentageBar default constructor
-    /** KEngine PercentageBar is an object based on KEngine Circle and
-        KEngine CurvedButton - it works like a volume bar, for ex. it
-        can give % of sound volume, user can modify it by sliding the
-        button form right (0%) to left (100%), inherits from class
-        GuiObject*/
-
-
-    this->shift = 0;
-    this->holded = false;
-    this->catchDiff = 0;
-}
-
-
-PercentageBar::PercentageBar( const sf::Vector2f& size,
-                              float button_radius,
-                              const sf::Vector2f& position,
-                              const sf::Texture* button_texture,
-                              const sf::Texture* object_texture,
-                              const sf::Color& button_color,
-                              const sf::Color& object_color,
-                              float button_outline_thickness,
-                              const sf::Color& button_outline_color,
-                              float object_outline_thickness,
-                              const sf::Color& object_outline_color,
-                              bool active )
-{
-    ///KEngine PercentageBar constructor
-    /** KEngine PercentageBar is an object based on KEngine Circle and
-        KEngine CurvedButton - it works like a volume bar, for ex. it
-        can give % of sound volume, user can modify it by sliding the
-        button form right (0%) to left (100%), inherits from class
-        GuiObject*/
-
-    this->t_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, button_texture, active);
-    this->c_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-    this->object = std::make_unique<CurvedButton>(size, position, object_texture, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-
-    this->shift = 0;
-    this->holded = false;
-    this->catchDiff = 0;
-}
-
-PercentageBar::PercentageBar( const sf::Vector2f& size,
-                              float button_radius,
-                              const sf::Vector2f& position,
-                              const std::string& button_texture_path,
-                              const std::string& object_texture_path,
-                              const sf::Color& button_color,
-                              const sf::Color& object_color,
-                              float button_outline_thickness,
-                              const sf::Color& button_outline_color,
-                              float object_outline_thickness,
-                              const sf::Color& object_outline_color,
-                              bool active )
-{
-    ///KEngine PercentageBar constructor
-    /** KEngine PercentageBar is an object based on KEngine Circle and
-        KEngine CurvedButton - it works like a volume bar, for ex. it
-        can give % of sound volume, user can modify it by sliding the
-        button form right (0%) to left (100%), inherits from class
-        GuiObject*/
-
-    this->t_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, button_texture_path, active);
-    this->c_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-    this->object = std::make_unique<CurvedButton>(size, position, object_texture_path, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-
-    this->shift = 0;
-    this->holded = false;
-    this->catchDiff = 0;
-}
-
-
-PercentageBar::~PercentageBar()
-{
-    ///KEngine PercentageBar destructor
-    /** KEngine PercentageBar is an object based on KEngine Circle and
-        KEngine CurvedButton - it works like a volume bar, for ex. it
-        can give % of sound volume, user can modify it by sliding the
-        button form right (0%) to left (100%), inherits from class
-        GuiObject*/
-}
-
 
-PercentageBar::PercentageBar(PercentageBar& other)
-{
-    ///KEngine PercentageBar copy constructor
-    /** KEngine PercentageBar is an object based on KEngine Circle and
-        KEngine CurvedButton - it works like a volume bar, for ex. it
-        can give % of sound volume, user can modify it by sliding the
-        button form right (0%) to left (100%), inherits from class
-        GuiObject*/
-
-    this->t_button->operator = (*other.getTextureButton()); // WTF
-    this->c_button->operator = (*other.getColorButton()); // WTF
-    this->object->operator = (*other.getObject()); // WTF
-
-    this->shift = other.getShift();
-    this->holded = false;
-    this->catchDiff = 0;
-}
-
-
-PercentageBar& PercentageBar::operator= (PercentageBar& other)
-{
-    ///KEngine PercentageBar operator =
-    /** KEngine PercentageBar is an object based on KEngine Circle and
-        KEngine CurvedButton - it works like a volume bar, for ex. it
-        can give % of sound volume, user can modify it by sliding the
-        button form right (0%) to left (100%), inherits from class
-        GuiObject*/
-
-    this->t_button->operator = (*other.getTextureButton()); // WTF
-    this->c_button->operator = (*other.getColorButton()); // WTF
-    this->object->operator = (*other.getObject()); // WTF
-
-    this->shift = other.getShift();
-    this->holded = false;
-    this->catchDiff = 0;
-
-    return *this;
-}
-
-
-
-void PercentageBar::create( const sf::Vector2f& size,
-                            float button_radius,
-                            const sf::Vector2f& position,
-                            const sf::Texture* button_texture,
-                            const sf::Texture* object_texture,
-                            const sf::Color& button_color,
-                            const sf::Color& object_color,
-                            float button_outline_thickness,
-                            const sf::Color& button_outline_color,
-                            float object_outline_thickness,
-                            const sf::Color& object_outline_color,
-                            bool active )
-{
-    ///KEngine PercentageBar create function <br>
-    ///use with default constructor
-    /** KEngine PercentageBar is an object based on KEngine Circle and
-        KEngine CurvedButton - it works like a volume bar, for ex. it
-        can give % of sound volume, user can modify it by sliding the
-        button form right (0%) to left (100%), inherits from class
-        GuiObject*/
-
-    this->t_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, button_texture, active);
-    this->c_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-    this->object = std::make_unique<CurvedButton>(size, position, object_texture, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-}
-
-
-void PercentageBar::create( const sf::Vector2f& size,
-                            float button_radius,
-                            const sf::Vector2f& position,
-                            const std::string& button_texture_path,
-                            const std::string& object_texture_path,
-                            const sf::Color& button_color,
-                            const sf::Color& object_color,
-                            float button_outline_thickness,
-                            const sf::Color& button_outline_color,
-                            float object_outline_thickness,
-                            const sf::Color& object_outline_color,
-                            bool active )
-{
-    ///KEngine PercentageBar create function <br>
-    ///use with default constructor
-    /** KEngine PercentageBar is an object based on KEngine Circle and
-        KEngine CurvedButton - it works like a volume bar, for ex. it
-        can give % of sound volume, user can modify it by sliding the
-        button form right (0%) to left (100%), inherits from class
-        GuiObject*/
-
-    this->t_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, button_texture_path, active);
-    this->c_button = std::make_unique<Circle>(button_radius, sf::Vector2f(position.x - (size.x - size.y) / 2, position.y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-    this->object = std::make_unique<CurvedButton>(size, position, object_texture_path, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-}
-
-
-
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============                           M O D    F U N C T I O N S                          ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
-
-
-
-void PercentageBar::setPosition(const sf::Vector2f& position)
-{
-    ///sets KEngine PercentageBar's position
-
-    this->object->setPosition(position);
-    this->t_button->setPosition(sf::Vector2f(this->object->getPosition().x - (this->object->getSize().x * this->object->getScale().x) / 2, position.y));
-    this->c_button->setPosition(sf::Vector2f(this->object->getPosition().x - (this->object->getSize().x * this->object->getScale().x) / 2, position.y));
-}
-
-void PercentageBar::setPosition(float x, float y)
-{
-    ///sets KEngine PercentageBar's position
-
-    this->setPosition(sf::Vector2f(x, y));
-}
-
-sf::Vector2f PercentageBar::getPosition() const
-{
-    ///returns KEngine PercentageBar's position
-
-    return this->object->getPosition();
-}
-
-
-void PercentageBar::setSize(const sf::Vector2f& size)
-{
-    ///sets KEngine PercentageBar size
-
-    this->object->setSize(size);
-    this->c_button->setPosition(this->object->getPosition().x - (size.x * object->getScale().x) / 2, this->object->getPosition().y);
-    this->t_button->setPosition(this->object->getPosition().x - (size.x * object->getScale().x) / 2, this->object->getPosition().y);
-}
-
-void PercentageBar::setSize(float size_x, float size_y)
-{
-    ///sets KEngine PercentageBar size
-
-    this->setSize(sf::Vector2f(size_x, size_y));
-}
-
-sf::Vector2f PercentageBar::getSize() const
-{
-    ///returns KEngine PercentageBar size
-
-    return this->object->getSize();
-}
-
-void PercentageBar::setButtonRadius(float radius)
-{
-    ///sets KEngine PercentageBar button radius
-
-    this->t_button->setRadius(radius);
-    this->c_button->setRadius(radius);
-
-    this->t_button->setPosition((this->object->getPosition().x - this->object->getSize().y) / 2, this->object->getPosition().y);
-    this->c_button->setPosition((this->object->getPosition().x - this->object->getSize().y) / 2, this->object->getPosition().y);
-}
-
-float PercentageBar::getButtonRadius() const
-{
-    ///returns KEngine PercentageBar button radius
-
-    return this->c_button->getRadius();
-}
-
-
-void PercentageBar::move(const sf::Vector2f& offset)
-{
-    ///moves KEngine PercentageBar by offset (px)
-
-    this->object->move(offset);
-    this->t_button->move(offset);
-    this->c_button->move(offset);
-}
 
-void PercentageBar::move(float offset_x, float offset_y)
-{
-    ///moves KEngine PercentageBar by offset (px)
 
-    this->object->move(offset_x, offset_y);
-    this->t_button->move(offset_x, offset_y);
-    this->c_button->move(offset_x, offset_y);
-}
 
+	// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	// \ \ \ \ \ \ \
+	//
+	//  P  E  R  C  E  N  T  A  G  E    % 
+	//
+	// / / / / / / /
+	// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-void PercentageBar::setScale(const sf::Vector2f& factors)
-{
-    ///sets KEngine PercentageBar's scale
 
-    this->object->setScale(factors);
-    this->setPosition(this->object->getPosition());
-}
 
-void PercentageBar::setScale(float factor_x, float factor_y)
-{
-    ///sets KEngine PercentageBar's scale
 
-    this->object->setScale(factor_x, factor_y);
-    this->setPosition(this->object->getPosition());
-}
 
-void PercentageBar::setButtonScale(const sf::Vector2f& factors)
-{
-    ///sets KEngine PercentageBar's button scale
 
-    this->c_button->setScale(factors);
-    this->t_button->setScale(factors);
-}
 
-void PercentageBar::setButtonScale(float factor_x, float factor_y)
-{
-    ///sets KEngine PercentageBar's button scale
 
-    this->c_button->setScale(factor_x, factor_y);
-    this->t_button->setScale(factor_x, factor_y);
-    this->setPosition(this->object->getPosition());
-}
 
-void PercentageBar::scale(const sf::Vector2f& factors)
-{
-    ///scales KEngine PercentageBar
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//============== C O N S T R U C T O R S ,   D E S T R U C T O R S   A N D   O P E R A T O R S ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
 
-    this->object->scale(factors);
-    this->setPosition(this->object->getPosition());
-}
 
-void PercentageBar::scaleButton(const sf::Vector2f& factors)
-{
-    ///scales KEngine PercentageBar's button
 
-    this->c_button->scale(factors);
-    this->t_button->scale(factors);
-    this->setPosition(this->object->getPosition());
-}
 
-sf::Vector2f PercentageBar::getScale() const
-{
-    ///returns KEngine PercentageBar's scale
 
-    return this->object->getScale();
-}
+	PercentageBar::PercentageBar()
+		: m_shift(0.f)
+		, m_holded(false)
+		, m_catchDiff(0)
+	{
 
-sf::Vector2f PercentageBar::getButtonScale() const
-{
-    ///returns KEngine PercentageBar's button scale
+	}
 
-    return this->t_button->getScale();
-}
 
+	////////////////////////////////
 
-void PercentageBar::setPositionByCentre(const sf::Vector2f& postion)
-{
-    ///sets position by the centre of the object
 
-    sf::Vector2f delta(this->object->getPosition().x - this->object->getShapeCentre().x, this->object->getPosition().y - this->object->getShapeCentre().y);
+	PercentageBar::PercentageBar(
+		const sf::Vector2f& size,
+		float button_radius,
+		const sf::Vector2f& position,
+		int origin,
+		const sf::Texture* button_texture,
+		const sf::Texture* object_texture,
+		const sf::Color& button_color,
+		const sf::Color& object_color,
+		float button_outline_thickness,
+		const sf::Color& button_outline_color,
+		float object_outline_thickness,
+		const sf::Color& object_outline_color,
+		bool active)
 
-    this->setPosition(postion.x + delta.x, postion.y + delta.y);
-}
+		: m_shift(0.f)
+		, m_holded(false)
+		, m_catchDiff(0)
+	{
+		m_object.create(size, position, origin, object_texture, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		m_texture_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - (size.x - size.y) / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, button_texture, active);
+		m_color_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - (size.x - size.y) / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+	}
 
-sf::Vector2f PercentageBar::getShapeCentre() const
-{
-    ///returns centre of the object
 
-    return object->getShapeCentre();
-}
 
-sf::Vector2f PercentageBar::getButtonCentre() const
-{
-    ///returns centre of the button
+	PercentageBar::PercentageBar(
+		const sf::Vector2f& size,
+		float button_radius,
+		const sf::Vector2f& position,
+		int origin,
+		const std::string& button_texture_path,
+		const std::string& object_texture_path,
+		const sf::Color& button_color,
+		const sf::Color& object_color,
+		float button_outline_thickness,
+		const sf::Color& button_outline_color,
+		float object_outline_thickness,
+		const sf::Color& object_outline_color,
+		bool active)
 
-    return t_button->getShapeCentre();
-}
+		: m_shift(0.f)
+		, m_holded(false)
+		, m_catchDiff(0)
+	{
+		m_object.create(size, position, origin, object_texture_path, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		m_texture_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - (size.x - size.y) / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, button_texture_path, active);
+		m_color_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - (size.x - size.y) / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+	}
 
 
-void PercentageBar::setTexture(const sf::Texture* texture)
-{
-    ///changes KEngine PercentageBar texture
-    /// setting texture from other texture
+	////////////////////////////////
 
-    this->object->setTexture(texture);
-}
 
-void PercentageBar::setButtonTexture(const sf::Texture* texture)
-{
-    ///changes KEngine PercentageBar's button texture
-    /// setting texture from other texture
+	PercentageBar::~PercentageBar()
+	{
 
-    this->t_button->setTexture(texture);
-}
+	}
 
-void PercentageBar::setTexture(const std::string& texture_path)
-{
-    ///changes KEngine PercentageBar texture
-    /// setting texture directly from file
 
-    this->object->setTexture(texture_path);
-}
 
-void PercentageBar::setButtonTexture(const std::string& texture_path)
-{
-    ///changes KEngine PercentageBar's button texture
-    /// setting texture directly from file
+	////////////////////////////////////////////////////////////////
 
-    this->t_button->setTexture(texture_path);
-}
 
-const sf::Texture* PercentageBar::getTexture() const
-{
-    ///returns pointer to KEngine PercentageBar's texture
-    /// if there's no texture, it returns nullptr
 
-    return this->object->getTexture();
-}
+	PercentageBar::PercentageBar(PercentageBar& other)
+		: m_shift(0.f)
+		, m_holded(false)
+		, m_catchDiff(0)
+	{
+		m_texture_button = (*other.getTextureButton());
+		m_color_button = (*other.getColorButton());
+		m_object = (*other.getObject());
+	}
 
-const sf::Texture* PercentageBar::getButtonTexture() const
-{
-    ///returns pointer to KEngine PercentageBar's button texture
-    /// if there's no texture, it returns nullptr
 
-    return this->t_button->getTexture();
-}
+	////////////////////////////////
 
 
-void PercentageBar::setFillColor(const sf::Color& color)
-{
-    ///sets KEngine PercentageBar's fill color
+	PercentageBar& PercentageBar::operator= (PercentageBar& other)
+	{
+		m_texture_button = (*other.getTextureButton()); 
+		m_color_button = (*other.getColorButton()); 
+		m_object = (*other.getObject()); 
 
-    this->object->setFillColor(color);
-}
+		m_shift = other.getShift();
+		m_holded = false;
+		m_catchDiff = 0.f;
 
-void PercentageBar::setButtonColor(const sf::Color& color)
-{
-    ///sets KEngine PercentageBar's button fill color
+		return *this;
+	}
 
-    c_button->setFillColor(color);
-}
 
-const sf::Color& PercentageBar::getFillColor() const
-{
-    ///returns KEngine PercentageBar's fill color
 
-    return this->object->getFillColor();
-}
+	////////////////////////////////////////////////////////////////
 
-const sf::Color& PercentageBar::getButtonColor() const
-{
-    ///returns KEngine PercentageBar's button fill color
 
-    return this->c_button->getFillColor();
-}
 
+	void PercentageBar::create(
+		const sf::Vector2f& size,
+		float button_radius,
+		const sf::Vector2f& position,
+		int origin,
+		const sf::Texture* button_texture,
+		const sf::Texture* object_texture,
+		const sf::Color& button_color,
+		const sf::Color& object_color,
+		float button_outline_thickness,
+		const sf::Color& button_outline_color,
+		float object_outline_thickness,
+		const sf::Color& object_outline_color,
+		bool active)
+	{
+		m_object.create(size, position, origin, object_texture, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		m_texture_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - (size.x - size.y) / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, button_texture, active);
+		m_color_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - (size.x - size.y) / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
 
-void PercentageBar::setTextColor(const sf::Color& text_color)
-{
-    /// does nothing - not text in this object
-}
+		m_shift = 0.f;
+		m_holded = false;
+		m_catchDiff = 0.f;
+	}
 
-const sf::Color& PercentageBar::getTextColor() const
-{
-    /// does nothing - not text in this object
 
-    return sf::Color::Transparent;
-}
 
+	void PercentageBar::create(
+		const sf::Vector2f& size,
+		float button_radius,
+		const sf::Vector2f& position,
+		int origin,
+		const std::string& button_texture_path,
+		const std::string& object_texture_path,
+		const sf::Color& button_color,
+		const sf::Color& object_color,
+		float button_outline_thickness,
+		const sf::Color& button_outline_color,
+		float object_outline_thickness,
+		const sf::Color& object_outline_color,
+		bool active)
+	{
+		m_object.create(size, position, origin, object_texture_path, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		m_texture_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - (size.x - size.y) / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, button_texture_path, active);
+		m_color_button.create(button_radius, sf::Vector2f(m_object.getShapeCenter().x - (size.x - size.y) / 2, m_object.getShapeCenter().y), MIDDLE_MIDDLE, L"", 0, MIDDLE_MIDDLE, button_color, sf::Color::Transparent, button_outline_thickness, button_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
 
-void PercentageBar::setOutlineColor(const sf::Color& outline_color)
-{
-    ///sets KEngine PercentageBar's outline color
+		m_shift = 0.f;
+		m_holded = false;
+		m_catchDiff = 0.f;
+	}
 
-    this->object->setOutlineColor(outline_color);
-}
 
-void PercentageBar::setOutlineButtonColor(const sf::Color& outline_color)
-{
-    ///sets KEngine PercentageBar's button outline color
 
-    this->c_button->setOutlineColor(outline_color);
-}
 
-const sf::Color& PercentageBar::getOutlineColor() const
-{
-    ///returns KEngine PercentageBar's outline color
 
-    return this->object->getOutlineColor();
-}
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============                           M O D    F U N C T I O N S                          ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
 
-const sf::Color& PercentageBar::getOutlineButtonColor() const
-{
-    ///returns KEngine PercentageBar's button outline color
 
-    return this->c_button->getOutlineColor();
-}
 
 
-void PercentageBar::setOutlineThickness(float outline_thickness)
-{
-    ///sets KEngine PercentageBar's outline thickness
 
-    this->object->setOutlineThickness(outline_thickness);
-}
+	void PercentageBar::setPosition(const sf::Vector2f& position)
+	{
+		m_object.setPosition(position);
 
-void PercentageBar::setOutlineButtonThickness(float outline_thickness)
-{
-    ///sets KEngine PercentageBar's button outline thickness
+		m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, getShapeCenter().y));
+		m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, getShapeCenter().y));
+	}
 
-    this->c_button->setOutlineThickness(outline_thickness);
-}
 
-float PercentageBar::getOutlineThickness() const
-{
-    ///returns KEngine PercentageBar's outline thickness
+	void PercentageBar::setPosition(float x, float y)
+	{
+		m_object.setPosition(x, y);
 
-    return this->object->getOutlineThickness();
-}
+		m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, getShapeCenter().y));
+		m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, getShapeCenter().y));
+	}
 
-float PercentageBar::getOutlineButtonThickness() const
-{
-    ///returns KEngine PercentageBar's button outline thickness
 
-    return this->c_button->getOutlineThickness();
-}
+	sf::Vector2f PercentageBar::getPosition() const
+	{
+		return m_object.getPosition();
+	}
 
 
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============          R E N D E R   A N D   B E H A V I O U R   F U N C T I O N S          ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
+	////////////////////////////////////////////////////////////////
 
 
 
-bool PercentageBar::isInvaded(const sf::Vector2f& mousePosition) const
-{
-    ///if mouse is on KEngine PercentageBar, returns true
+	void PercentageBar::setSize(const sf::Vector2f& size)
+	{
+		m_shift = m_shift * (size.x - size.y) / (m_object.getButton()->getSize().x * m_object.getScale().x);
 
-    return this->object->isInvaded(mousePosition);
-}
+		m_object.setSize(size);
 
-bool PercentageBar::isButtonInvaded(const sf::Vector2f& mousePosition) const
-{
-    ///if mouse is on KEngine PercentageBar's button, returns true
+		m_texture_button.setPosition(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, m_object.getShapeCenter().y);
+		m_color_button.setPosition(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, m_object.getShapeCenter().y);
+	}
 
-    return this->t_button->isInvaded(mousePosition);
-}
 
-bool PercentageBar::isClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
-{
-    ///if mouse is on KEngine PercentageBar and the right button is clicked, returns true (use in pollEvent loop)
+	void PercentageBar::setSize(float size_x, float size_y)
+	{
+		m_shift = m_shift * (size_x - size_y) / (m_object.getButton()->getSize().x * m_object.getScale().x);
 
-    return this->object->isClicked(button, mousePosition, event);
-}
+		m_object.setSize(size_x, size_y);
 
-bool PercentageBar::isButtonClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
-{
-    ///if mouse is on KEngine PercentageBar's button and the right button is clicked, returns true (use in pollEvent loop)
+		m_texture_button.setPosition(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, m_object.getShapeCenter().y);
+		m_color_button.setPosition(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, m_object.getShapeCenter().y);
+	}
 
-    return this->t_button->isClicked(button, mousePosition, event);
-}
 
+	sf::Vector2f PercentageBar::getSize() const
+	{
+		return m_object.getSize();
+	}
 
 
-bool PercentageBar::isActive() const
-{
-    ///if KEngine PercentageBar is displayed, returns true
+	////////////////////////////////
 
-    return this->object->isActive();
-}
 
-void PercentageBar::setActiveStatus(bool status)
-{
-    ///if KEngine PercentageBar is active, it is displayed on the screen
+	void PercentageBar::setButtonRadius(float radius)
+	{
+		m_texture_button.setRadius(radius);
+		m_color_button.setRadius(radius);
 
-    this->c_button->setActiveStatus(status);
-    this->t_button->setActiveStatus(status);
-    this->object->setActiveStatus(status);
-}
+		m_texture_button.setPosition(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, m_object.getShapeCenter().y);
+		m_color_button.setPosition(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, m_object.getShapeCenter().y);
+	}
 
 
+	float PercentageBar::getButtonRadius() const
+	{
+		return m_color_button.getRadius();
+	}
 
-Circle* PercentageBar::getColorButton()
-{
-    return this->c_button.get();
-}
 
-Circle* PercentageBar::getTextureButton()
-{
-    return this->t_button.get();
-}
 
-CurvedButton* PercentageBar::getObject()
-{
-    return this->object.get();
-}
+	////////////////////////////////////////////////////////////////
 
 
 
-void PercentageBar::setPercent(float percent)
-{
-    ///sets the percent of KEngine PercentageBar's shift
+	void PercentageBar::move(const sf::Vector2f& offset)
+	{
+		m_object.move(offset);
+		m_texture_button.move(offset);
+		m_color_button.move(offset);
+	}
 
-    this->t_button->setPosition(sf::Vector2f(this->object->getPosition().x - (this->object->getSize().x * this->object->getScale().x) / 2 + this->object->getSize().x * this->object->getScale().x * (percent / 100), this->object->getPosition().y));
-    this->c_button->setPosition(sf::Vector2f(this->object->getPosition().x - (this->object->getSize().x * this->object->getScale().x) / 2 + this->object->getSize().x * this->object->getScale().x * (percent / 100), this->object->getPosition().y));
 
-    this->shift = this->object->getSize().x * (percent / 100);
-}
+	void PercentageBar::move(float offset_x, float offset_y)
+	{
+		m_object.move(offset_x, offset_y);
+		m_texture_button.move(offset_x, offset_y);
+		m_color_button.move(offset_x, offset_y);
+	}
 
 
-float PercentageBar::getPercent() const
-{
-    ///returns the percent of KEngine PercentageBar's shift
 
-    return this->shift * 100 / this->object->getSize().x;
-}
+	////////////////////////////////////////////////////////////////
 
 
 
-bool PercentageBar::isHolded() const
-{
-    ///if KEngine PercentageBar is holded by the mouse, returns true
+	void PercentageBar::setText(const std::wstring& text)
+	{
+		// does nothing, not available in this object
+	}
 
-    return holded;
-}
 
-float PercentageBar::getShift() const
-{
-    ///returns KEngine PercentageBar's button shift in pixels
+	std::wstring PercentageBar::getText() const
+	{
+		// does nothing, not available in this object
 
-    return shift;
-}
+		return std::wstring();
+	}
 
 
 
-float PercentageBar::update(const sf::Vector2f& mousePosition, sf::Event& event, sf::Mouse::Button button, sf::View* view)
-{
-    ///KEngine PercentageBar heart, use it in pollEvent loop to make it work
+	////////////////////////////////////////////////////////////////
 
-    if (this->isButtonClicked(button, mousePosition, event))
-    {
-        this->holded = true;
-        this->catchDiff = mousePosition.x - t_button->getPosition().x;
-    }
-    else if (!sf::Mouse::isButtonPressed(button))
-        this->holded = false;
 
-    if (holded)
-    {
-        this->c_button->setPosition(mousePosition.x - catchDiff, this->object->getPosition().y);
-        this->t_button->setPosition(mousePosition.x - catchDiff, this->object->getPosition().y);
 
-        sf::Vector2f temp = mousePosition;
-        if (temp.x < object->getPosition().x - object->getSize().x / 2) temp.x = object->getPosition().x - object->getSize().x / 2;
-        if (temp.x > object->getPosition().x + object->getSize().x / 2) temp.x = object->getPosition().x + object->getSize().x / 2;
-        this->shift = temp.x - (this->object->getPosition().x - this->object->getSize().x / 2);
+	void PercentageBar::setOrigin(int origin)
+	{
+		m_object.setOrigin(origin);
 
-        if (t_button->getPosition().x < object->getPosition().x - object->getSize().x / 2)
-        {
-            t_button->setPosition(object->getPosition().x - object->getSize().x / 2, object->getPosition().y);
-            c_button->setPosition(object->getPosition().x - object->getSize().x / 2, object->getPosition().y);
-        }
-        else if (t_button->getPosition().x > object->getPosition().x + object->getSize().x / 2)
-        {
-            t_button->setPosition(object->getPosition().x + object->getSize().x / 2, object->getPosition().y);
-            c_button->setPosition(object->getPosition().x + object->getSize().x / 2, object->getPosition().y);
-        }
+		m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, getShapeCenter().y));
+		m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, getShapeCenter().y));
+	}
 
-        return 1.f;
-    }
-    else return 0;
-}
 
+	int PercentageBar::getOrigin() const
+	{
+		return m_object.getOrigin();
+	}
 
-void PercentageBar::render(sf::RenderWindow* window)
-{
-    ///displays KEngine PercentageBar on the screen, if active of course
 
-    this->object->render(window);
 
-    this->c_button->render(window);
-    this->t_button->render(window);
-}
+	////////////////////////////////////////////////////////////////
 
 
 
+	void PercentageBar::setRotation(float angle)
+	{
+		// does nothing, not available in this object
+	}
 
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-// \ \ \ \ \ \ \
-//
-//  P  O  I  N  T    .f
-//
-// / / / / / / /
-// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
+	void PercentageBar::rotate(float angle)
+	{
+		// does nothing, not available in this object
+	}
 
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//============== C O N S T R U C T O R S ,   D E S T R U C T O R S   A N D   O P E R A T O R S ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
+	float PercentageBar::getRotation() const
+	{
+		// does nothing, not available in this object
 
+		return 0.0f;
+	}
 
 
-PointBar::PointBar()
-{
 
-}
+	////////////////////////////////////////////////////////////////
 
 
-PointBar::PointBar( const sf::Vector2f& size,
-                    const sf::Vector2f& position,
-                    const sf::Texture* texture,
-                    float points,
-                    float max_points,
-                    int origin,
-                    const sf::Color& object_color,
-                    const sf::Color& bar_color,
-                    float object_outline_thickness,
-                    float bar_outline_thickness,
-                    const sf::Color& object_outline_color,
-                    const sf::Color& bar_outline_color,
-                    bool active )
-{
-    ///KEngine PointBar constructor
-    /** KEngine PointBar is an object based on KEngine Rectangle and
-        KEngine Button - it works like a loading bar, you can manage
-        the number of points and max points, inherits from class
-        GuiObject */
 
-    this->object = std::make_unique<Button>(size, position, origin, texture, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-    this->bar = std::make_unique<Rectangle>(sf::Vector2f(size.x * (points / max_points), size.y), sf::Vector2f(this->object->getShapeCentre().x - this->object->getSize().x / 2, this->object->getShapeCentre().y), LEFT_MIDDLE, L"", 0, MIDDLE_MIDDLE, bar_color, sf::Color::Transparent, bar_outline_thickness, bar_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+	void PercentageBar::setScale(const sf::Vector2f& factors)
+	{
+		m_object.setScale(factors);
 
-    this->pts = points;
-    this->max_pts = max_points;
-}
+		this->setPosition(m_object.getPosition());
+	}
 
 
-PointBar::PointBar( const sf::Vector2f& size,
-                    const sf::Vector2f& position,
-                    const std::string& texture_path,
-                    float points,
-                    float max_points,
-                    int origin,
-                    const sf::Color& object_color,
-                    const sf::Color& bar_color,
-                    float object_outline_thickness,
-                    float bar_outline_thickness,
-                    const sf::Color& object_outline_color,
-                    const sf::Color& bar_outline_color,
-                    bool active )
-{
-    ///KEngine PointBar constructor
-    /** KEngine PointBar is an object based on KEngine Rectangle and
-        KEngine Button - it works like a loading bar, you can manage
-        the number of points and max points, inherits from class
-        GuiObject */
+	void PercentageBar::setScale(float factor_x, float factor_y)
+	{
+		m_object.setScale(factor_x, factor_y);
 
-    this->object = std::make_unique<Button>(size, position, origin, texture_path, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-    this->bar = std::make_unique<Rectangle>(sf::Vector2f(size.x * (points / max_points), size.y), sf::Vector2f(this->object->getShapeCentre().x - this->object->getSize().x / 2, this->object->getShapeCentre().y), LEFT_MIDDLE, L"", 0, MIDDLE_MIDDLE, bar_color, sf::Color::Transparent, bar_outline_thickness, bar_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		this->setPosition(m_object.getPosition());
+	}
 
-    this->pts = points;
-    this->max_pts = max_points;
-}
 
+	////////////////////////////////
 
-PointBar::~PointBar()
-{
-    ///KEngine PointBar destructor
-    /** KEngine PointBar is an object based on KEngine Rectangle and
-        KEngine Button - it works like a loading bar, you can manage
-        the number of points and max points, inherits from class
-        GuiObject */
-}
 
+	void PercentageBar::setButtonScale(const sf::Vector2f& factors)
+	{
+		m_color_button.setScale(factors);
+		m_texture_button.setScale(factors);
+	}
 
-PointBar::PointBar(PointBar& other)
-{
-    ///KEngine PointBar copy constructor
-    /** KEngine PointBar is an object based on KEngine Rectangle and
-        KEngine Button - it works like a loading bar, you can manage
-        the number of points and max points, inherits from class
-        GuiObject */
 
-    this->bar->operator = (*other.getBar());
-    this->object->operator = (*other.getObject());
+	void PercentageBar::setButtonScale(float factor_x, float factor_y)
+	{
+		m_color_button.setScale(factor_x, factor_y);
+		m_texture_button.setScale(factor_x, factor_y);
+	}
 
-    this->pts = other.getPointCount();
-    this->max_pts = other.getMaxPointCount();
-}
 
+	////////////////////////////////
 
-PointBar& PointBar::operator= (PointBar& other)
-{
-    ///KEngine Rectangle operator =
-    /** KEngine PointBar is an object based on KEngine Rectangle and
-        KEngine Button - it works like a loading bar, you can manage
-        the number of points and max points, inherits from class
-        GuiObject */
 
-    this->bar->operator = (*other.getBar());
-    this->object->operator = (*other.getObject());
+	void PercentageBar::scale(const sf::Vector2f& factors)
+	{
+		m_object.scale(factors);
 
-    this->pts = other.getPointCount();
-    this->max_pts = other.getMaxPointCount();
+		this->setPosition(m_object.getPosition());
+	}
 
-    return *this;
-}
 
+	void PercentageBar::scaleButton(const sf::Vector2f& factors)
+	{
+		m_color_button.scale(factors);
+		m_texture_button.scale(factors);
+	}
 
 
-void PointBar::create( const sf::Vector2f& size,
-                       const sf::Vector2f& position,
-                       const sf::Texture* texture,
-                       float points,
-                       float max_points,
-                       int origin,
-                       const sf::Color& object_color,
-                       const sf::Color& bar_color,
-                       float object_outline_thickness,
-                       float bar_outline_thickness,
-                       const sf::Color& object_outline_color,
-                       const sf::Color& bar_outline_color,
-                       bool active )
-{
-    ///KEngine PointBar create function <br>
-    ///use with default constructor
-    /** KEngine PointBar is an object based on KEngine Rectangle and
-        KEngine Button - it works like a loading bar, you can manage
-        the number of points and max points, inherits from class
-        GuiObject */
+	////////////////////////////////
 
-    this->object = std::make_unique<Button>(size, position, origin, texture, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-    this->bar = std::make_unique<Rectangle>(sf::Vector2f(size.x * (points / max_points), size.y), sf::Vector2f(this->object->getShapeCentre().x - this->object->getSize().x / 2, this->object->getShapeCentre().y), LEFT_MIDDLE, L"", 0, MIDDLE_MIDDLE, bar_color, sf::Color::Transparent, bar_outline_thickness, bar_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
 
-    this->pts = points;
-    this->max_pts = max_points;
-}
+	sf::Vector2f PercentageBar::getScale() const
+	{
+		return m_object.getScale();
+	}
 
 
+	sf::Vector2f PercentageBar::getButtonScale() const
+	{
+		return m_texture_button.getScale();
+	}
 
-void PointBar::create( const sf::Vector2f& size,
-                       const sf::Vector2f& position,
-                       const std::string& texture_path,
-                       float points,
-                       float max_points,
-                       int origin,
-                       const sf::Color& object_color,
-                       const sf::Color& bar_color,
-                       float object_outline_thickness,
-                       float bar_outline_thickness,
-                       const sf::Color& object_outline_color,
-                       const sf::Color& bar_outline_color,
-                       bool active )
-{
-    ///KEngine PointBar create function <br>
-    ///use with default constructor
-    /** KEngine PointBar is an object based on KEngine Rectangle and
-        KEngine Button - it works like a loading bar, you can manage
-        the number of points and max points, inherits from class
-        GuiObject */
 
-    this->object = std::make_unique<Button>(size, position, origin, texture_path, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
-    this->bar = std::make_unique<Rectangle>(sf::Vector2f(size.x * (points / max_points), size.y), sf::Vector2f(this->object->getShapeCentre().x - this->object->getSize().x / 2, this->object->getShapeCentre().y), LEFT_MIDDLE, L"", 0, MIDDLE_MIDDLE, bar_color, sf::Color::Transparent, bar_outline_thickness, bar_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
 
-    this->pts = points;
-    this->max_pts = max_points;
-}
+	////////////////////////////////////////////////////////////////
 
 
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============                           M O D    F U N C T I O N S                          ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
+	void PercentageBar::setPositionByCenter(const sf::Vector2f& position)
+	{
+		//m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, getShapeCenter().y));
+		//m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, getShapeCenter().y));
+		m_object.setPositionByCenter(position);
 
+		m_texture_button.setPosition(sf::Vector2f(position.x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, position.y));
+		m_color_button.setPosition(sf::Vector2f(position.x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_shift * m_object.getScale().x, position.y));
+	}
 
 
-void PointBar::setPosition(const sf::Vector2f& position)
-{
-    ///sets KEngine Rectangle's position
+	sf::Vector2f PercentageBar::getShapeCenter() const
+	{
+		return m_object.getShapeCenter();
+	}
 
-    this->object->setPosition(position);
-    this->bar->setPosition(sf::Vector2f(this->object->getShapeCentre().x - this->object->getSize().x / 2, this->object->getShapeCentre().y));
-}
 
-void PointBar::setPosition(float x, float y)
-{
-    ///sets KEngine Rectangle's position
+	sf::Vector2f PercentageBar::getButtonCenter() const
+	{
+		return m_texture_button.getShapeCenter();
+	}
 
-    this->setPosition(sf::Vector2f(x, y));
-}
 
-sf::Vector2f PointBar::getPosition() const
-{
-    ///returns KEngine Rectangle's position
 
-    return this->object->getPosition();
-}
+	////////////////////////////////////////////////////////////////
 
 
-void PointBar::setSize(const sf::Vector2f& size)
-{
-    ///sets KEngine Rectangle size
 
-    this->object->setSize(size);
-    this->bar->setSize(sf::Vector2f(size.x * (pts / max_pts), size.y));
-}
+	void PercentageBar::setTexture(const sf::Texture* texture)
+	{
+		m_object.setTexture(texture);
+	}
 
-void PointBar::setSize(float size_x, float size_y)
-{
-    ///sets KEngine Rectangle size
 
-    this->object->setSize(size_x, size_y);
-    this->bar->setSize(sf::Vector2f(size_x * (pts / max_pts), size_y));
-}
+	void PercentageBar::setButtonTexture(const sf::Texture* texture)
+	{
+		m_texture_button.setTexture(texture);
+	}
 
-sf::Vector2f PointBar::getSize() const
-{
-    ///returns KEngine Rectangle size
 
-    return this->object->getSize();
-}
+	////////////////////////////////
 
-sf::Vector2f PointBar::getBarSize() const
-{
-    ///sets KEngine Rectangle's bar size
 
-    return this->bar->getSize();
-}
+	void PercentageBar::setTexture(const std::string& filename)
+	{
+		m_object.setTexture(filename);
+	}
 
 
-void PointBar::move(const sf::Vector2f& offset)
-{
-    ///moves KEngine Rectangle by offset (px)
+	void PercentageBar::setButtonTexture(const std::string& filename)
+	{
+		m_texture_button.setTexture(filename);
+	}
 
-    this->object->move(offset);
-    this->bar->move(offset);
-}
 
-void PointBar::move(float offset_x, float offset_y)
-{
-    ///moves KEngine Rectangle by offset (px)
+	////////////////////////////////
 
-    this->object->move(offset_x, offset_y);
-    this->bar->move(offset_x, offset_y);
-}
 
+	const sf::Texture* PercentageBar::getTexture() const
+	{
+		return m_object.getTexture();
+	}
 
-void PointBar::setScale(const sf::Vector2f& factors)
-{
-    ///sets KEngine Rectangle's scale
 
-    this->object->setScale(factors);
-    this->bar->setScale(factors);
-}
+	const sf::Texture* PercentageBar::getButtonTexture() const
+	{
+		return m_texture_button.getTexture();
+	}
 
-void PointBar::setScale(float factor_x, float factor_y)
-{
-    ///sets KEngine Rectangle's scale
 
-    this->object->setScale(factor_x, factor_y);
-    this->bar->setScale(factor_x, factor_y);
-}
 
-void PointBar::scale(const sf::Vector2f& factors)
-{
-    ///scales KEngine Rectangle
+	////////////////////////////////////////////////////////////////
 
-    this->object->scale(factors);
-    this->bar->scale(factors);
-}
 
-sf::Vector2f PointBar::getScale() const
-{
-    ///returns scale of the KEngine Rectangle
 
-    return this->object->getScale();
-}
+	void PercentageBar::setFillColor(const sf::Color& color)
+	{
+		m_object.setFillColor(color);
+	}
 
 
-void PointBar::setPositionByCentre(const sf::Vector2f& postion)
-{
-    ///sets position by the centre of the object
+	void PercentageBar::setButtonColor(const sf::Color& color)
+	{
+		m_color_button.setFillColor(color);
+	}
 
-    sf::Vector2f delta(this->object->getPosition().x - this->object->getShapeCentre().x, this->object->getPosition().y - this->object->getShapeCentre().y);
 
-    this->setPosition(postion.x + delta.x, postion.y + delta.y);
-}
+	////////////////////////////////
 
-sf::Vector2f PointBar::getShapeCentre() const
-{
-    ///returns centre of the object
 
-    return object->getShapeCentre();
-}
+	const sf::Color& PercentageBar::getFillColor() const
+	{
+		return m_object.getFillColor();
+	}
 
 
-void PointBar::setTexture(const sf::Texture* texture)
-{
-    ///changes KEngine Rectangle texture
-    /// setting texture from other texture
+	const sf::Color& PercentageBar::getButtonColor() const
+	{
+		return m_color_button.getFillColor();
+	}
 
-    this->object->setTexture(texture);
-}
 
-void PointBar::setTexture(const std::string& texture_path)
-{
-    ///changes KEngine Rectangle texture
-    /// setting texture directly from file
 
-    this->object->setTexture(texture_path);
-}
+	////////////////////////////////////////////////////////////////
 
-const sf::Texture* PointBar::getTexture() const
-{
-    ///returns pointer to KEngine Rectangle's texture
-    /// if there's no texture, it returns nullptr
 
-    return this->object->getTexture();
-}
 
+	void PercentageBar::setTextColor(const sf::Color& text_color)
+	{
+		/// does nothing - not text in this object
+	}
 
-void PointBar::setFillColor(const sf::Color& color)
-{
-    ///sets KEngine Rectangle's fill color
 
-    this->object->setFillColor(color);
-}
+	const sf::Color& PercentageBar::getTextColor() const
+	{
+		/// does nothing - not text in this object
 
-void PointBar::setBarFillColor(const sf::Color& color)
-{
-    ///sets KEngine Rectangle's bar fill color
+		return sf::Color::Transparent;
+	}
 
-    this->bar->setFillColor(color);
-}
 
-const sf::Color& PointBar::getFillColor() const
-{
-    ///returns KEngine Rectangle's fill color
 
-    return object->getFillColor();
-}
+	////////////////////////////////////////////////////////////////
 
-const sf::Color& PointBar::getBarFillColor() const
-{
-    ///returns KEngine Rectangle's bar fill color
 
-    return bar->getFillColor();
-}
 
+	void PercentageBar::setOutlineColor(const sf::Color& outline_color)
+	{
+		m_object.setOutlineColor(outline_color);
+	}
 
-void PointBar::setTextColor(const sf::Color& text_color)
-{
-    ///does nothing, no text in this object
-}
 
-const sf::Color& PointBar::getTextColor() const
-{
-    ///does nothing, no text in this object
+	void PercentageBar::setOutlineButtonColor(const sf::Color& outline_color)
+	{
+		m_color_button.setOutlineColor(outline_color);
+	}
 
-    return sf::Color::Transparent;
-}
 
+	////////////////////////////////
 
 
-void PointBar::setOutlineColor(const sf::Color& outline_color)
-{
-    ///sets KEngine Rectangle's outline color
+	const sf::Color& PercentageBar::getOutlineColor() const
+	{
+		return m_object.getOutlineColor();
+	}
 
-    this->object->setOutlineColor(outline_color);
-}
 
-void PointBar::setBarOutlineColor(const sf::Color& outline_color)
-{
-    ///sets KEngine Rectangle's bar outline color
+	const sf::Color& PercentageBar::getOutlineButtonColor() const
+	{
+		return m_color_button.getOutlineColor();
+	}
 
-    this->bar->setOutlineColor(outline_color);
-}
 
-const sf::Color& PointBar::getOutlineColor() const
-{
-    ///returns KEngine Rectangle's outline color
 
-    return object->getOutlineColor();
-}
+	////////////////////////////////////////////////////////////////
 
-const sf::Color& PointBar::getBarOutlineColor() const
-{
-    ///returns KEngine Rectangle's bar outline color
 
-    return bar->getOutlineColor();
-}
 
+	void PercentageBar::setOutlineThickness(float outline_thickness)
+	{
+		m_object.setOutlineThickness(outline_thickness);
+	}
 
-void PointBar::setOutlineThickness(float outline_thickness)
-{
-    ///sets KEngine Rectangle's outline thickness
 
-    this->object->setOutlineThickness(outline_thickness);
-}
+	void PercentageBar::setOutlineButtonThickness(float outline_thickness)
+	{
+		m_color_button.setOutlineThickness(outline_thickness);
+	}
 
-void PointBar::setBarOutlineThickness(float outline_thickness)
-{
-    ///sets KEngine Rectangle's bar outline thickness
 
-    this->bar->setOutlineThickness(outline_thickness);
-}
+	////////////////////////////////
 
-float PointBar::getOutlineThickness() const
-{
-    ///returns KEngine Rectangle's outline thickness
 
-    return object->getOutlineThickness();
-}
+	float PercentageBar::getOutlineThickness() const
+	{
+		return m_object.getOutlineThickness();
+	}
 
-float PointBar::getBarOutlineThickness() const
-{
-    ///returns KEngine Rectangle's bar outline thickness
 
-    return bar->getOutlineThickness();
-}
+	float PercentageBar::getOutlineButtonThickness() const
+	{
+		return m_color_button.getOutlineThickness();
+	}
 
 
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============          R E N D E R   A N D   B E H A V I O U R   F U N C T I O N S          ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
 
 
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============          R E N D E R   A N D   B E H A V I O U R   F U N C T I O N S          ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
 
-bool PointBar::isInvaded(const sf::Vector2f& mousePosition) const
-{
-    ///if mouse is on KEngine Rectangle, returns true
 
-    return object->isInvaded(mousePosition);
-}
 
-bool PointBar::isBarInvaded(const sf::Vector2f& mousePosition) const
-{
-    ///if mouse is on KEngine Rectangle's bar, returns true
 
-    return bar->isInvaded(mousePosition);
-}
 
+	bool PercentageBar::isInvaded(const sf::Vector2f& mousePosition) const
+	{
+		return m_object.isInvaded(mousePosition);
+	}
 
-bool PointBar::isClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
-{
-    ///if mouse is on KEngine Rectangle and the right button is clicked, returns true (use in pollEvent loop)
 
-    return object->isClicked(button, mousePosition, event);
-}
+	bool PercentageBar::isButtonInvaded(const sf::Vector2f& mousePosition) const
+	{
+		return m_texture_button.isInvaded(mousePosition);
+	}
 
-bool PointBar::isBarClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
-{
-    ///if mouse is on KEngine Rectangle's bar and the right button is clicked, returns true (use in pollEvent loop)
 
-    return bar->isClicked(button, mousePosition, event);
-}
+	////////////////////////////////
 
 
-bool PointBar::isActive() const
-{
-    ///if KEngine Rectangle is displayed, returns true
+	bool PercentageBar::isClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
+	{
+		return m_object.isClicked(button, mousePosition, event);
+	}
 
-    return object->isActive();
-}
 
-void PointBar::setActiveStatus(bool status)
-{
-    ///if KEngine Rectangle is active, it is displayed on the screen
+	bool PercentageBar::isButtonClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
+	{
+		return m_texture_button.isClicked(button, mousePosition, event);
+	}
 
-    this->object->setActiveStatus(status);
-    this->bar->setActiveStatus(status);
-}
 
 
-Rectangle* PointBar::getBar()
-{
-    ///returns pointer to KEngine PointBar's rectangle
+	////////////////////////////////////////////////////////////////
 
-    return bar.get();
-}
 
-Button* PointBar::getObject()
-{
-    ///returns pointer to KEngine PointBar's button
 
-    return object.get();
-}
+	bool PercentageBar::isActive() const
+	{
+		return m_object.isActive();
+	}
 
 
-void PointBar::addPoint()
-{
-    ///adds one point
+	void PercentageBar::setActiveStatus(bool status)
+	{
+		m_color_button.setActiveStatus(status);
+		m_texture_button.setActiveStatus(status);
+		m_object.setActiveStatus(status);
+	}
 
-    if (pts + 1 <= max_pts)
-        pts++;
-    else pts = max_pts;
 
-    this->bar->setSize(sf::Vector2f(object->getSize().x * (pts / max_pts), object->getSize().y));
-}
 
-void PointBar::subtractPoint()
-{
-    ///subtracts one point
+	////////////////////////////////////////////////////////////////
 
-    if (pts - 1 >= 0)
-        pts--;
-    else pts = 0;
 
-    this->bar->setSize(sf::Vector2f(object->getSize().x * (pts / max_pts), object->getSize().y));
-}
 
+	Circle* PercentageBar::getColorButton()
+	{
+		return &m_color_button;
+	}
 
-void PointBar::addPoints(float count)
-{
-    ///adds given amount of points
 
-    if (pts + count <= max_pts)
-        pts += count;
-    else pts = max_pts;
+	Circle* PercentageBar::getTextureButton()
+	{
+		return &m_texture_button;
+	}
 
-    this->bar->setSize(sf::Vector2f(object->getSize().x * (pts / max_pts), object->getSize().y));
-}
 
-void PointBar::subtractPoints(float count)
-{
-    ///subtracts given amount of points
+	CurvedButton* PercentageBar::getObject()
+	{
+		return &m_object;
+	}
 
-    if (pts - count >= 0)
-        pts -= count;
-    else pts = 0;
 
-    this->bar->setSize(sf::Vector2f(object->getSize().x * (pts / max_pts), object->getSize().y));
-}
 
+	////////////////////////////////////////////////////////////////
 
-void PointBar::setPointCount(float count)
-{
-    ///sets point count to "count"
 
-    this->pts = count;
 
-    if (pts > max_pts) pts = max_pts;
-    else if (pts < 0)  pts = 0;
+	void PercentageBar::setPercent(float percent)
+	{
+		m_texture_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_object.getButton()->getSize().x * m_object.getScale().x * (percent / 100), m_object.getShapeCenter().y));
+		m_color_button.setPosition(sf::Vector2f(m_object.getShapeCenter().x - (m_object.getButton()->getSize().x * m_object.getScale().x) / 2 + m_object.getButton()->getSize().x * m_object.getScale().x * (percent / 100), m_object.getShapeCenter().y));
 
-    this->bar->setSize(sf::Vector2f(object->getSize().x * (pts / max_pts), object->getSize().y));
-}
+		m_shift = m_object.getButton()->getSize().x * m_object.getScale().x * (percent / 100);
+	}
 
-float PointBar::getPointCount() const
-{
-    ///returns number of points
 
-    return pts;
-}
+	float PercentageBar::getPercent()
+	{
+		return m_shift * 100 / m_object.getButton()->getSize().x;
+	}
 
 
-void PointBar::setMaxPointCount(float max_count)
-{
-    ///sets maximum point count
 
-    this->max_pts = max_count;
+	////////////////////////////////////////////////////////////////
 
-    this->bar->setSize(sf::Vector2f(object->getSize().x * (pts / max_pts), object->getSize().y));
-}
+	
 
-float PointBar::getMaxPointCount() const
-{
-    ///returns maximum point count
+	void PercentageBar::setHolded(bool holded)
+	{
+		m_holded = holded;
+	}
 
-    return max_pts;
-}
 
+	bool PercentageBar::isHolded() const
+	{
+		return m_holded;
+	}
 
 
-float PointBar::update(const sf::Vector2f& mousePosition, sf::Event& event, sf::Mouse::Button button, sf::View* view)
-{
-    ///does nothing
 
-    return 0;
-}
+	////////////////////////////////////////////////////////////////
 
 
-void PointBar::render(sf::RenderWindow* window)
-{
-    ///displays KEngine Rectangle on the screen, if active of course
 
-    if (object->isActive())
-    {
-        this->object->render(window);
-        this->bar->render(window);
-    }
-}
+	float PercentageBar::getShift() const
+	{
+		return m_shift;
+	}
 
-}
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PercentageBar::reverseRenderOrder()
+	{
+		m_object.getButton()->reverseRenderOrder();
+	}
+
+
+	void PercentageBar::setRenderOrder(bool order)
+	{
+		m_object.getButton()->setRenderOrder(order);
+	}
+
+
+	bool PercentageBar::getRenderOrder()
+	{
+		return m_object.getButton()->getRenderOrder();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+	
+
+
+	float PercentageBar::update(const sf::Vector2f& mousePosition, sf::Event& event, sf::Mouse::Button button, sf::View* view)
+	{
+		if (!m_object.isActive())
+			return 0.f;
+
+		if (this->isButtonClicked(button, mousePosition, event))
+		{
+			m_holded = true;
+			m_catchDiff = mousePosition.x - m_texture_button.getShapeCenter().x;
+		}
+		else if (!this->isButtonClicked(button, mousePosition, event) && this->isClicked(button, mousePosition, event))
+		{
+			m_holded = true;
+			m_catchDiff = 0.f;
+		}
+		else if (!sf::Mouse::isButtonPressed(button))
+			m_holded = false;
+
+		if (m_holded)
+		{
+			m_color_button.setPosition(mousePosition.x - m_catchDiff, m_object.getShapeCenter().y);
+			m_texture_button.setPosition(mousePosition.x - m_catchDiff, m_object.getShapeCenter().y);
+
+			float centbuff = m_texture_button.getShapeCenter().x;
+
+			varGuard(centbuff, m_object.getShapeCenter().x - m_object.getButton()->getSize().x * m_object.getScale().x / 2, m_object.getShapeCenter().x + m_object.getButton()->getSize().x * m_object.getScale().x / 2);
+
+			m_shift = centbuff - (m_object.getShapeCenter().x - m_object.getButton()->getSize().x * m_object.getScale().x / 2);
+
+			if (m_texture_button.getPosition().x < m_object.getShapeCenter().x - m_object.getButton()->getSize().x * m_object.getScale().x / 2)
+			{
+				m_texture_button.setPosition(m_object.getShapeCenter().x - m_object.getButton()->getSize().x * m_object.getScale().x / 2, m_object.getShapeCenter().y);
+				m_color_button.setPosition(m_object.getShapeCenter().x - m_object.getButton()->getSize().x * m_object.getScale().x / 2, m_object.getShapeCenter().y);
+			}
+			else if (m_texture_button.getPosition().x > m_object.getShapeCenter().x + m_object.getButton()->getSize().x * m_object.getScale().x / 2)
+			{
+				m_texture_button.setPosition(m_object.getShapeCenter().x + m_object.getButton()->getSize().x * m_object.getScale().x / 2, m_object.getShapeCenter().y);
+				m_color_button.setPosition(m_object.getShapeCenter().x + m_object.getButton()->getSize().x * m_object.getScale().x / 2, m_object.getShapeCenter().y);
+			}
+
+			return 1.f;
+		}
+		else return 0.f;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PercentageBar::render(sf::RenderWindow* window)
+	{
+		m_object.render(window);
+
+		if (m_object.getButton()->getRenderOrder())
+		{
+			m_color_button.render(window);
+			m_texture_button.render(window);
+		}
+		else
+		{
+			m_texture_button.render(window);
+			m_color_button.render(window);
+		}
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	bool PercentageBar::created() const
+	{
+		return m_object.created();
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	// \ \ \ \ \ \ \
+	//
+	//  P  O  I  N  T    
+	//
+	// / / / / / / /
+	// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+
+
+
+
+
+
+
+
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//============== C O N S T R U C T O R S ,   D E S T R U C T O R S   A N D   O P E R A T O R S ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
+
+
+
+
+
+	PointBar::PointBar()
+		: m_pts(0)
+		, m_min_pts(0)
+		, m_max_pts(0)
+	{
+
+	}
+
+
+	////////////////////////////////
+
+
+	PointBar::PointBar(
+		const sf::Vector2f& size,
+		const sf::Vector2f& position,
+		const sf::Texture* texture,
+		float points,
+		float min_points,
+		float max_points,
+		int origin,
+		const sf::Color& object_color,
+		const sf::Color& bar_color,
+		float object_outline_thickness,
+		float bar_outline_thickness,
+		const sf::Color& object_outline_color,
+		const sf::Color& bar_outline_color,
+		bool active)
+
+		: m_pts(points)
+		, m_min_pts(min_points)
+		, m_max_pts(max_points)
+	{
+		m_object.create(size, position, origin, texture, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		m_bar.create(sf::Vector2f(size.x * ((points - min_points) / (max_points - min_points)), size.y), sf::Vector2f(m_object.getShapeCenter().x - m_object.getSize().x / 2, m_object.getShapeCenter().y), LEFT_MIDDLE, L"", 0, MIDDLE_MIDDLE, bar_color, sf::Color::Transparent, bar_outline_thickness, bar_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+	}
+
+
+
+	PointBar::PointBar(
+		const sf::Vector2f& size,
+		const sf::Vector2f& position,
+		const std::string& texture_path,
+		float points,
+		float min_points,
+		float max_points,
+		int origin,
+		const sf::Color& object_color,
+		const sf::Color& bar_color,
+		float object_outline_thickness,
+		float bar_outline_thickness,
+		const sf::Color& object_outline_color,
+		const sf::Color& bar_outline_color,
+		bool active)
+
+		: m_pts(points)
+		, m_min_pts(min_points)
+		, m_max_pts(max_points)
+	{
+		m_object.create(size, position, origin, texture_path, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		m_bar.create(sf::Vector2f(size.x * ((points - min_points) / (max_points - min_points)), size.y), sf::Vector2f(m_object.getShapeCenter().x - m_object.getSize().x / 2, m_object.getShapeCenter().y), LEFT_MIDDLE, L"", 0, MIDDLE_MIDDLE, bar_color, sf::Color::Transparent, bar_outline_thickness, bar_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+	}
+
+
+	////////////////////////////////
+
+
+	PointBar::~PointBar()
+	{
+
+	}
+
+
+
+	////////////////////////////////
+
+
+
+	PointBar::PointBar(PointBar& other)
+		: m_pts(other.getPointCount())
+		, m_min_pts(other.getMinPointCount())
+		, m_max_pts(other.getMaxPointCount())
+	{
+		m_bar = (*other.getBar());
+		m_object = (*other.getObject());
+	}
+
+
+
+	PointBar& PointBar::operator= (PointBar& other)
+	{
+		m_bar = (*other.getBar());
+		m_object = (*other.getObject());
+
+		m_pts = other.getPointCount();
+		m_max_pts = other.getMaxPointCount();
+		m_min_pts = other.getMinPointCount();
+
+		return *this;
+	}
+
+
+
+	////////////////////////////////
+
+
+
+	void PointBar::create(
+		const sf::Vector2f& size,
+		const sf::Vector2f& position,
+		const sf::Texture* texture,
+		float points,
+		float min_points,
+		float max_points,
+		int origin,
+		const sf::Color& object_color,
+		const sf::Color& bar_color,
+		float object_outline_thickness,
+		float bar_outline_thickness,
+		const sf::Color& object_outline_color,
+		const sf::Color& bar_outline_color,
+		bool active)
+	{
+		m_object.create(size, position, origin, texture, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		m_bar.create(sf::Vector2f(size.x * ((points - min_points) / (max_points - min_points)), size.y), sf::Vector2f(m_object.getShapeCenter().x - m_object.getSize().x / 2, m_object.getShapeCenter().y), LEFT_MIDDLE, L"", 0, MIDDLE_MIDDLE, bar_color, sf::Color::Transparent, bar_outline_thickness, bar_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+
+		m_pts = points;
+		m_min_pts = min_points;
+		m_max_pts = max_points;
+	}
+
+
+
+	void PointBar::create(
+		const sf::Vector2f& size,
+		const sf::Vector2f& position,
+		const std::string& texture_path,
+		float points,
+		float min_points,
+		float max_points,
+		int origin,
+		const sf::Color& object_color,
+		const sf::Color& bar_color,
+		float object_outline_thickness,
+		float bar_outline_thickness,
+		const sf::Color& object_outline_color,
+		const sf::Color& bar_outline_color,
+		bool active)
+	{
+		m_object.create(size, position, origin, texture_path, L"", 0, MIDDLE_MIDDLE, object_color, sf::Color::Transparent, object_outline_thickness, object_outline_color, 0, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+		m_bar.create(sf::Vector2f(size.x * ((points - min_points) / (max_points - min_points)), size.y), sf::Vector2f(m_object.getShapeCenter().x - m_object.getSize().x / 2, m_object.getShapeCenter().y), LEFT_MIDDLE, L"", 0, MIDDLE_MIDDLE, bar_color, sf::Color::Transparent, bar_outline_thickness, bar_outline_color, 0.f, sf::Text::Regular, sf::Vector2f(0, 0), Arial, active);
+
+		m_pts = points;
+		m_max_pts = max_points;
+		m_min_pts = min_points;
+	}
+
+
+
+
+
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============                       P R I V A T E   F U N C T I O N S                       ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
+
+
+
+
+
+	void PointBar::updateBarSize()
+	{
+		m_bar.setSize(sf::Vector2f(m_object.getSize().x * ((m_pts - m_min_pts) / (m_max_pts - m_min_pts)), m_object.getSize().y));
+	}
+
+
+	void PointBar::updateBarPosition()
+	{
+		m_bar.setPosition(sf::Vector2f(m_object.getShapeCenter().x - m_object.getSize().x * m_object.getScale().x / 2, m_object.getShapeCenter().y));
+	}
+
+
+
+
+
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============                           M O D    F U N C T I O N S                          ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
+
+
+
+
+
+	void PointBar::setPosition(const sf::Vector2f& position)
+	{
+		m_object.setPosition(position);
+		
+		this->updateBarPosition();
+	}
+
+
+	void
+		PointBar::setPosition(float x, float y)
+	{
+		m_object.setPosition(x, y);
+		
+		this->updateBarPosition();
+	}
+
+
+	sf::Vector2f PointBar::getPosition() const
+	{
+		return m_object.getPosition();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+
+	void PointBar::setSize(const sf::Vector2f& size)
+	{
+		m_object.setSize(size);
+		
+		this->updateBarSize();
+		this->updateBarPosition();
+	}
+
+
+	void PointBar::setSize(float size_x, float size_y)
+	{
+		m_object.setSize(size_x, size_y);
+
+		this->updateBarSize();
+		this->updateBarPosition();
+	}
+
+
+	sf::Vector2f PointBar::getSize() const
+	{
+		return m_object.getSize();
+	}
+
+
+	sf::Vector2f PointBar::getBarSize() const
+	{
+		return m_bar.getSize();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::move(const sf::Vector2f& offset)
+	{
+		m_object.move(offset);
+		m_bar.move(offset);
+	}
+
+
+	void PointBar::move(float offset_x, float offset_y)
+	{
+		m_object.move(offset_x, offset_y);
+		m_bar.move(offset_x, offset_y);
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::setText(const std::wstring& text)
+	{
+		// Does nothing - not available in PointBar
+	}
+
+
+	std::wstring PointBar::getText() const
+	{
+		// Does nothing - not available in PointBar
+
+		return std::wstring();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::setOrigin(int origin)
+	{
+		m_object.setOrigin(origin);
+
+		this->updateBarPosition();
+	}
+
+
+	int PointBar::getOrigin() const
+	{
+		return m_object.getOrigin();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::setRotation(float angle)
+	{
+		// Does nothing - not available in PointBar
+	}
+
+
+	void PointBar::rotate(float angle)
+	{
+		// Does nothing - not available in PointBar
+	}
+
+
+	float PointBar::getRotation() const
+	{
+		// Does nothing - not available in PointBar
+
+		return 0.0f;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::setScale(const sf::Vector2f& factors)
+	{
+		m_object.setScale(factors);
+		m_bar.setScale(factors);
+
+		this->updateBarPosition();
+	}
+
+
+	void PointBar::setScale(float factor_x, float factor_y)
+	{
+		m_object.setScale(factor_x, factor_y);
+		m_bar.setScale(factor_x, factor_y);
+
+		this->updateBarPosition();
+	}
+
+
+	void PointBar::scale(const sf::Vector2f& factors)
+	{
+		m_object.scale(factors);
+		m_bar.scale(factors);
+
+		this->updateBarPosition();
+	}
+
+
+	sf::Vector2f PointBar::getScale() const
+	{
+		return m_object.getScale();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::setPositionByCenter(const sf::Vector2f& position)
+	{
+		m_object.setPositionByCenter(position);
+
+		this->updateBarPosition();
+	}
+
+
+	sf::Vector2f PointBar::getShapeCenter() const
+	{
+		return m_object.getShapeCenter();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::setTexture(const sf::Texture* texture)
+	{
+		m_object.setTexture(texture);
+	}
+
+
+	void PointBar::setTexture(const std::string& texture_path)
+	{
+		m_object.setTexture(texture_path);
+	}
+
+
+	const sf::Texture* PointBar::getTexture() const
+	{
+		return m_object.getTexture();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::setFillColor(const sf::Color& color)
+	{
+		m_object.setFillColor(color);
+	}
+
+
+	void PointBar::setBarFillColor(const sf::Color& color)
+	{
+		m_bar.setFillColor(color);
+	}
+
+
+
+	const sf::Color& PointBar::getFillColor() const
+	{
+		return m_object.getFillColor();
+	}
+
+
+	const sf::Color& PointBar::getBarFillColor() const
+	{
+		return m_bar.getFillColor();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::setTextColor(const sf::Color& text_color)
+	{
+		///does nothing, no text in this m_object
+	}
+
+
+	const sf::Color& PointBar::getTextColor() const
+	{
+		///does nothing, no text in this m_object
+
+		return sf::Color::Transparent;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::setOutlineColor(const sf::Color& outline_color)
+	{
+		m_object.setOutlineColor(outline_color);
+	}
+
+
+	void PointBar::setBarOutlineColor(const sf::Color& outline_color)
+	{
+		m_bar.setOutlineColor(outline_color);
+	}
+
+
+
+	const sf::Color& PointBar::getOutlineColor() const
+	{
+		return m_object.getOutlineColor();
+	}
+
+
+	const sf::Color& PointBar::getBarOutlineColor() const
+	{
+		return m_bar.getOutlineColor();
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::setOutlineThickness(float outline_thickness)
+	{
+		m_object.setOutlineThickness(outline_thickness);
+	}
+
+
+	void PointBar::setBarOutlineThickness(float outline_thickness)
+	{
+		m_bar.setOutlineThickness(outline_thickness);
+	}
+
+
+
+	float PointBar::getOutlineThickness() const
+	{
+		return m_object.getOutlineThickness();
+	}
+
+
+	float PointBar::getBarOutlineThickness() const
+	{
+		return m_bar.getOutlineThickness();
+	}
+
+
+
+
+
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============          R E N D E R   A N D   B E H A V I O U R   F U N C T I O N S          ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
+
+
+
+
+
+	bool PointBar::isInvaded(const sf::Vector2f& mousePosition) const
+	{
+		return m_object.isInvaded(mousePosition);
+	}
+
+
+	bool PointBar::isBarInvaded(const sf::Vector2f& mousePosition) const
+	{
+		return m_bar.isInvaded(mousePosition);
+	}
+
+
+
+	////////////////////////////////
+
+
+
+	bool PointBar::isClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
+	{
+		return m_object.isClicked(button, mousePosition, event);
+	}
+
+
+	bool PointBar::isBarClicked(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event) const
+	{
+		return m_bar.isClicked(button, mousePosition, event);
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	bool PointBar::isActive() const
+	{
+		return m_object.isActive();
+	}
+
+
+	void PointBar::setActiveStatus(bool status)
+	{
+		m_object.setActiveStatus(status);
+		m_bar.setActiveStatus(status);
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	Rectangle* PointBar::getBar()
+	{
+		return &m_bar;
+	}
+
+
+	Button* PointBar::getObject()
+	{
+		return &m_object;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::addPoint()
+	{
+		if (m_pts + 1 <= m_max_pts)
+			m_pts++;
+		else m_pts = m_max_pts;
+
+		this->updateBarSize();
+	}
+
+
+	void PointBar::subtractPoint()
+	{
+		if (m_pts - 1 >= m_min_pts)
+			m_pts--;
+		else m_pts = m_min_pts;
+
+		this->updateBarSize();
+	}
+
+
+
+	////////////////////////////////
+
+
+
+	void PointBar::addPoints(float count)
+	{
+		if (m_pts + count <= m_max_pts)
+			m_pts += count;
+		else m_pts = m_max_pts;
+
+		this->updateBarSize();
+	}
+
+
+	void PointBar::subtractPoints(float count)
+	{
+		if (m_pts - count >= m_min_pts)
+			m_pts -= count;
+		else m_pts = m_min_pts;
+
+		this->updateBarSize();
+	}
+
+
+
+	////////////////////////////////
+
+
+
+	void PointBar::setPointCount(float count)
+	{
+		m_pts = count;
+
+		varGuard(m_pts, m_min_pts, m_max_pts);
+
+		this->updateBarSize();
+	}
+
+
+	float PointBar::getPointCount() const
+	{
+		return m_pts;
+	}
+
+
+
+	////////////////////////////////
+
+
+
+	void PointBar::setMinPointCount(float min_count)
+	{
+		m_min_pts = min_count;
+
+		varGuard(m_pts, m_min_pts, m_max_pts);
+
+		this->updateBarSize();
+	}
+
+
+
+	float PointBar::getMinPointCount() const
+	{
+		return m_min_pts;
+	}
+
+
+
+	////////////////////////////////
+
+
+
+	void PointBar::setMaxPointCount(float max_count)
+	{
+		m_max_pts = max_count;
+
+		varGuard(m_pts, m_min_pts, m_max_pts);
+
+		this->updateBarSize();
+	}
+
+
+	float PointBar::getMaxPointCount() const
+	{
+		return m_max_pts;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	float PointBar::update(const sf::Vector2f& mousePosition, sf::Event& event, sf::Mouse::Button button, sf::View* view)
+	{
+		// does nothing
+
+		return 0;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	void PointBar::render(sf::RenderWindow* window)
+	{
+		m_object.render(window);
+		m_bar.render(window);
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	bool PointBar::created() const
+	{
+		return m_object.created();
+	}
+
+
+} // namespace ke

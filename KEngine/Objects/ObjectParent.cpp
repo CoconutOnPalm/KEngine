@@ -1,664 +1,1103 @@
 #include "ObjectParent.hpp"
 
+
+namespace KEngine
+{
+	bool Init()
+	{
+		bool success = true; // returns loading status (successful or not)
+
+		if (!ke::Settings::Init())  success = false;
+		if (!ke::GuiObject::Init()) success = false;
+
+		return success;
+	}
+
+
+	bool CustomInit(
+		bool forceDefaultSettings,
+		bool loadArial,
+		bool loadArialUnicode,
+		bool loadCalibri,
+		bool loadComicSans,
+		bool loadCourierNew,
+		bool loadTimesNewRoman,
+		bool loadTrebuchetMS,
+		bool loadVerdana)
+	{
+		bool success = ke::Settings::Init(); // returns loading status (successful or not)
+
+		if (forceDefaultSettings)
+			ke::Settings::restoreDefaults();
+
+		if (!ke::GuiObject::CustomInit(loadArial, loadArialUnicode, loadCalibri, loadComicSans, loadCourierNew, loadTimesNewRoman, loadTrebuchetMS, loadVerdana))
+			success = false;
+
+		return true;
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 namespace ke
 {
 
-//MouseButon GuiObject::MB;
-Pos GuiObject::TP;
-Pos GuiObject::OR;
-Font GuiObject::FONT;
-TextScope GuiObject::TS;
-
-sf::Font GuiObject::arial;
-sf::Font GuiObject::arial_uni;
-sf::Font GuiObject::calibri;
-sf::Font GuiObject::comic_sans;
-sf::Font GuiObject::courier_new;
-sf::Font GuiObject::times_new_roman;
-sf::Font GuiObject::trebuchet_MS;
-sf::Font GuiObject::verdana;
-
-
-bool GuiObject::fonts_inited = false;
-
-
-void GuiObject::Init()
-{
-    arial.loadFromFile("KEngine/Fonts/arial.ttf");
-    arial_uni.loadFromFile("KEngine/Fonts/ARIALUNI.ttf");
-    calibri.loadFromFile("KEngine/Fonts/calibri.ttf");
-    comic_sans.loadFromFile("KEngine/Fonts/comic.ttf");
-    courier_new.loadFromFile("KEngine/Fonts/cour.ttf");
-    times_new_roman.loadFromFile("KEngine/Fonts/times.ttf");
-    trebuchet_MS.loadFromFile("KEngine/Fonts/trebuc.ttf");
-    verdana.loadFromFile("KEngine/Fonts/verdana.ttf");
+	Origin GuiObject::TP;
+	Origin GuiObject::OR;
+	Font GuiObject::FONT;
+	TextScope GuiObject::TS;
 
-    fonts_inited = true;
-}
+
+	sf::Font GuiObject::f_arial;
+	sf::Font GuiObject::f_arial_unicode;
+	sf::Font GuiObject::f_calibri;
+	sf::Font GuiObject::f_comic_sans;
+	sf::Font GuiObject::f_courier_new;
+	sf::Font GuiObject::f_times_new_roman;
+	sf::Font GuiObject::f_trebuchet_MS;
+	sf::Font GuiObject::f_verdana;
+
+	bool GuiObject::s_arial_status = true;
+	bool GuiObject::s_arial_uni_status = true;
+	bool GuiObject::s_calibri_status = true;
+	bool GuiObject::s_comic_status = true;
+	bool GuiObject::s_courier_status = true;
+	bool GuiObject::s_times_nr_status = true;
+	bool GuiObject::s_trebuchet_status = true;
+	bool GuiObject::s_verdana_status = true;
+
+
+	bool GuiObject::s_fonts_inited = false;
+
+
+	////////////////////////////////
+
+
+	bool GuiObject::Init()
+	{
+		bool success = true; // returns loading status (successful or not)
 
 
+		FileStream filestream;
+		if (!filestream.open(Settings::DefaultFontPath(), std::ios::in))
+		{
+			throw_error("GuiObject::Init()", "failed to load font paths - setting paths to default", "ERROR");
+			success = false;
+		}
 
-GuiObject::GuiObject()
-{
-    if (!fonts_inited)
-        throw_error("GuiObject constructor", "failed to initialize fonts - call GuiObject::Init() first", "ERROR");
 
-    /*arial.loadFromFile("KEngine/Fonts/arial.ttf");
-    arial_uni.loadFromFile("KEngine/Fonts/ARIALUNI.ttf");
-    calibri.loadFromFile("KEngine/Fonts/calibri.ttf");
-    comic_sans.loadFromFile("KEngine/Fonts/comic.ttf");
-    courier_new.loadFromFile("KEngine/Fonts/cour.ttf");
-    times_new_roman.loadFromFile("KEngine/Fonts/times.ttf");
-    trebuchet_MS.loadFromFile("KEngine/Fonts/trebuc.ttf");
-    verdana.loadFromFile("KEngine/Fonts/verdana.ttf");*/
+		const int font_num = 8;
+		std::string paths[font_num] = { 
+			"KEngine/Sources/Data/arial.ttf",
+			"KEngine/Sources/Data/arialUNI.ttf",
+			"KEngine/Sources/Data/calibri.ttf",
+			"KEngine/Sources/Data/comic.ttf",
+			"KEngine/Sources/Data/cour.ttf",
+			"KEngine/Sources/Data/times.ttf",
+			"KEngine/Sources/Data/trebuc.ttf",
+			"KEngine/Sources/Data/verdana.ttf" 
+		};
 
-    /*arial.loadFromFile("Fonts/arial.ttf"); // for testing
-    arial_uni.loadFromFile("Fonts/ARIALUNI.ttf");
-    calibri.loadFromFile("Fonts/calibri.ttf");
-    comic_sans.loadFromFile("Fonts/comic.ttf");
-    courier_new.loadFromFile("Fonts/cour.ttf");
-    times_new_roman.loadFromFile("Fonts/times.ttf");
-    trebuchet_MS.loadFromFile("Fonts/trebuc.ttf");
-    verdana.loadFromFile("Fonts/verdana.ttf");*/
-}
+		for (int i = 0; i < font_num; i++)
+			filestream.textRead(paths[i]);
 
-GuiObject::~GuiObject()
-{
 
-}
+		if (!f_arial.loadFromFile(paths[0])) { success = false; s_arial_status = false; }
+		if (!f_arial_unicode.loadFromFile(paths[1])) { success = false; s_arial_uni_status = false; }
+		if (!f_calibri.loadFromFile(paths[2])) { success = false; s_calibri_status = false; }
+		if (!f_comic_sans.loadFromFile(paths[3])) { success = false; s_comic_status = false; }
+		if (!f_courier_new.loadFromFile(paths[4])) { success = false; s_courier_status = false; }
+		if (!f_times_new_roman.loadFromFile(paths[5])) { success = false; s_times_nr_status = false; }
+		if (!f_trebuchet_MS.loadFromFile(paths[6])) { success = false; s_trebuchet_status = false; }
+		if (!f_verdana.loadFromFile(paths[7])) { success = false; s_verdana_status = false; }
 
+		s_fonts_inited = true;
 
+		return success;
+	}
 
-Physics* GuiObject::physics()
-{
-    ///default physics initializers for classes that don't support physics
 
-    return nullptr;
-}
+	////////////////////////////////
 
 
+	bool GuiObject::CustomInit(
+		bool loadArial,
+		bool loadArialUnicode,
+		bool loadCalibri,
+		bool loadComicSans,
+		bool loadCourierNew,
+		bool loadTimesNewRoman,
+		bool loadTrebuchetMS,
+		bool loadVerdana)
+	{
+		bool success = true; // returns loading status (successful or not)
 
-//-------------------------                                                         -------------------------//
-//+++                                                                                                     +++//
-//==============               F U N C T I O N S ,   W I T H   G U I O B J E C T               ==============//
-//+++                                                                                                     +++//
-//-------------------------                                                         -------------------------//
 
+		FileStream filestream;
+		if (!filestream.open(Settings::DefaultFontPath(), std::ios::in))
+		{
+			throw_error("GuiObject::Init()", "failed to load font paths - setting paths to default", "ERROR");
+			success = false;
+		}
 
-bool SmoothColorChange(GuiObject* object, bool tf_argumet, sf::Vector2f& mousePosition, const sf::Color& target_color, const sf::Color& basic_color, const float intensity, const float dt)
-{
-    /** \brief changes color of the object smoothly
-     *
-     * \param object        GuiObject child that is going to be changed
-     * \param tf_argument   true - changes to specified color
-                            false - changes back to basic color
-     * \param mousePosition if object is invaded by the mouse
-     * \param target_color  the color that will be put on the object at the end of the change
-     * \param basic_color   the color before the change
-     * \param intensity     the speed of changes
-     * \param dt            delta time - used to change the color independently from the user's fps
-     * \return the same as tf_argument
-     *
-     */
 
+		const int font_num = 8;
+		std::string paths[font_num] = { 
+			"KEngine/Sources/Data/arial.ttf",
+			"KEngine/Sources/Data/arialUNI.ttf",
+			"KEngine/Sources/Data/calibri.ttf",
+			"KEngine/Sources/Data/comic.ttf",
+			"KEngine/Sources/Data/cour.ttf",
+			"KEngine/Sources/Data/times.ttf",
+			"KEngine/Sources/Data/trebuc.ttf",
+			"KEngine/Sources/Data/verdana.ttf" 
+		};
 
-    float ratio_r = target_color.r - basic_color.r;
-    float ratio_g = target_color.g - basic_color.g;
-    float ratio_b = target_color.b - basic_color.b;
-    float ratio_a = target_color.a - basic_color.a;
+		for (int i = 0; i < font_num; i++)
+			filestream.textRead(paths[i]);
 
-    if (tf_argumet)
-    {
-        sf::Color temp = object->getFillColor();
+		if (loadArial && !f_arial.loadFromFile(paths[0])) { success = false; s_arial_status = false; }
+		if (loadArialUnicode && !f_arial_unicode.loadFromFile(paths[1])) { success = false; s_arial_uni_status = false; }
+		if (loadCalibri && !f_calibri.loadFromFile(paths[2])) { success = false; s_calibri_status = false; }
+		if (loadComicSans && !f_comic_sans.loadFromFile(paths[3])) { success = false; s_comic_status = false; }
+		if (loadCourierNew && !f_courier_new.loadFromFile(paths[4])) { success = false; s_courier_status = false; }
+		if (loadTimesNewRoman && !f_times_new_roman.loadFromFile(paths[5])) { success = false; s_times_nr_status = false; }
+		if (loadTrebuchetMS && !f_trebuchet_MS.loadFromFile(paths[6])) { success = false; s_trebuchet_status = false; }
+		if (loadVerdana && !f_verdana.loadFromFile(paths[7])) { success = false; s_verdana_status = false; }
 
+		s_fonts_inited = true;
 
-        if (object->getFillColor().r + (ratio_r * intensity * dt) >= 0 && object->getFillColor().r + (ratio_r * intensity * dt) <= 255)
-            temp.r = static_cast<sf::Uint8>(object->getFillColor().r + (ratio_r * intensity * dt));
-        if (object->getFillColor().g + (ratio_g * intensity * dt) >= 0 && object->getFillColor().g + (ratio_g * intensity * dt) <= 255)
-            temp.g = static_cast<sf::Uint8>(object->getFillColor().g + (ratio_g * intensity * dt));
-        if (object->getFillColor().b + (ratio_b * intensity * dt) >= 0 && object->getFillColor().b + (ratio_b * intensity * dt) <= 255)
-            temp.b = static_cast<sf::Uint8>(object->getFillColor().b + (ratio_b * intensity * dt));
-        if (object->getFillColor().a + (ratio_a * intensity * dt) >= 0 && object->getFillColor().a + (ratio_a * intensity * dt) <= 255)
-            temp.a = static_cast<sf::Uint8>(object->getFillColor().a + (ratio_a * intensity * dt));
+		return success;
+	}
 
 
+	////////////////////////////////////////////////////////////////
 
-        if      (ratio_r < 0 && temp.r < target_color.r) temp.r = target_color.r;
-        else if (ratio_r > 0 && temp.r > target_color.r) temp.r = target_color.r;
 
-        if      (ratio_g < 0 && temp.g < target_color.g) temp.g = target_color.g;
-        else if (ratio_g > 0 && temp.g > target_color.g) temp.g = target_color.g;
 
-        if      (ratio_b < 0 && temp.b < target_color.b) temp.b = target_color.b;
-        else if (ratio_b > 0 && temp.b > target_color.b) temp.b = target_color.b;
+	GuiObject::GuiObject()
+	{
 
-        if      (ratio_a < 0 && temp.a < target_color.a) temp.a = target_color.a;
-        else if (ratio_a > 0 && temp.a > target_color.a) temp.a = target_color.a;
+// check for debug mode for more optimization
+#if NODEBUG
+#else
 
+		if (!s_fonts_inited)
+			throw_error("GuiObject constructor", "failed to initialize fonts - call ke::GuiObject::Init() first", "ERROR");
 
-        if      (temp.r < 0) temp.r = 0;
-        else if (temp.r > 255) temp.r = 255;
+#endif // NODEBUG
 
-        if      (temp.g < 0) temp.g = 0;
-        else if (temp.g > 255) temp.g = 255;
+	}
 
-        if      (temp.b < 0) temp.b = 0;
-        else if (temp.b > 255) temp.b = 255;
 
-        if      (temp.a < 0) temp.a = 0;
-        else if (temp.a > 255) temp.a = 255;
+	////////////////////////////////
 
 
-        object->setFillColor(temp);
+	GuiObject::~GuiObject()
+	{
 
-        return true;
-    }
-    else
-    {
-        sf::Color temp = object->getFillColor();
+	}
 
 
+	////////////////////////////////
 
-        if (object->getFillColor().r - (ratio_r * intensity * dt) / 2 >= 0 && object->getFillColor().r - (ratio_r * intensity * dt) / 2 <= 255)
-            temp.r = static_cast<sf::Uint8>(object->getFillColor().r - (ratio_r * intensity * dt) / 2);
-        if (object->getFillColor().g - (ratio_g * intensity * dt) / 2 >= 0 && object->getFillColor().g - (ratio_g * intensity * dt) / 2 <= 255)
-            temp.g = static_cast<sf::Uint8>(object->getFillColor().g - (ratio_g * intensity * dt) / 2);
-        if (object->getFillColor().b - (ratio_b * intensity * dt) / 2 >= 0 && object->getFillColor().b - (ratio_b * intensity * dt) / 2 <= 255)
-            temp.b = static_cast<sf::Uint8>(object->getFillColor().b - (ratio_b * intensity * dt) / 2);
-        if (object->getFillColor().a - (ratio_a * intensity * dt) >= 0 && object->getFillColor().a - (ratio_a * intensity * dt) <= 255)
-            temp.a = static_cast<sf::Uint8>(object->getFillColor().a - (ratio_a * intensity * dt));
 
+	Physics* GuiObject::physics()
+	{
+		return nullptr;
+	}
 
 
-        if      (ratio_r < 0 && temp.r > basic_color.r) temp.r = basic_color.r;
-        else if (ratio_r > 0 && temp.r < basic_color.r) temp.r = basic_color.r;
 
-        if      (ratio_g < 0 && temp.g > basic_color.g) temp.g = basic_color.g;
-        else if (ratio_g > 0 && temp.g < basic_color.g) temp.g = basic_color.g;
 
-        if      (ratio_b < 0 && temp.b > basic_color.b) temp.b = basic_color.b;
-        else if (ratio_b > 0 && temp.b < basic_color.b) temp.b = basic_color.b;
 
-        if      (ratio_a < 0 && temp.a > basic_color.a) temp.a = basic_color.a;
-        else if (ratio_a > 0 && temp.a < basic_color.a) temp.a = basic_color.a;
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
 
-        if      (temp.r < 0) temp.r = 0;
-        else if (temp.r > 255) temp.r = 255;
 
-        if      (temp.g < 0) temp.g = 0;
-        else if (temp.g > 255) temp.g = 255;
 
-        if      (temp.b < 0) temp.b = 0;
-        else if (temp.b > 255) temp.b = 255;
+	HoldObjectWithMouse::HoldObjectWithMouse()
+		:m_catchDiff(0, 0)
+	{
+		m_object = nullptr;
+		m_holding = false;
+	}
 
-        if      (temp.a < 0) temp.a = 0;
-        else if (temp.a > 255) temp.a = 255;
 
+	HoldObjectWithMouse::HoldObjectWithMouse(GuiObject* object)
+		:m_catchDiff(0, 0)
+	{
+		m_object = object;
+		m_holding = false;
+	}
 
 
-        object->setFillColor(temp);
+	////////////////////////////////
 
 
-        return false;
-    }
-}
+	void HoldObjectWithMouse::connectToObject(GuiObject* object)
+	{
+		m_object = object;
+		m_holding = false;
+	}
 
 
 
-bool SmoothOutlineColorChange(GuiObject* object, bool tf_argumet, sf::Vector2f& mousePosition, const sf::Color& target_color, const sf::Color& basic_color, const float intensity, const float dt)
-{
-    /** \brief changes outline color of the object smoothly
-     *
-     * \param object        GuiObject child that is going to be changed
-     * \param tf_argument   true - changes to specified color
-                            false - changes back to basic color
-     * \param mousePosition if object is invaded by the mouse
-     * \param target_color  the color that will be put on the object at the end of the change
-     * \param basic_color   the color before the change
-     * \param intensity     the speed of changes
-     * \param dt            delta time - used to change the color independently from the user's fps
-     * \return the same as tf_argument
-     *
-     */
+	////////////////////////////////////////////////////////////////
 
 
-    float ratio_r = target_color.r - basic_color.r;
-    float ratio_g = target_color.g - basic_color.g;
-    float ratio_b = target_color.b - basic_color.b;
-    float ratio_a = target_color.a - basic_color.a;
 
-    if (tf_argumet)
-    {
-        sf::Color temp = object->getOutlineColor();
+	bool HoldObjectWithMouse::update(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event)
+	{
+		if (!m_object->isActive())
+			return false;
 
+		if (event.type == sf::Event::MouseButtonPressed && event.key.code == button && m_object->isInvaded(mousePosition))
+		{
+			m_holding = true;
+			m_catchDiff = sf::Vector2f(m_object->getShapeCenter() - mousePosition);
+		}
 
-        if (object->getOutlineColor().r + (ratio_r * intensity * dt) >= 0 && object->getOutlineColor().r + (ratio_r * intensity * dt) <= 255)
-            temp.r = static_cast<sf::Uint8>(object->getOutlineColor().r + (ratio_r * intensity * dt));
-        if (object->getOutlineColor().g + (ratio_g * intensity * dt) >= 0 && object->getOutlineColor().g + (ratio_g * intensity * dt) <= 255)
-            temp.g = static_cast<sf::Uint8>(object->getOutlineColor().g + (ratio_g * intensity * dt));
-        if (object->getOutlineColor().b + (ratio_b * intensity * dt) >= 0 && object->getOutlineColor().b + (ratio_b * intensity * dt) <= 255)
-            temp.b = static_cast<sf::Uint8>(object->getOutlineColor().b + (ratio_b * intensity * dt));
-        if (object->getOutlineColor().a + (ratio_a * intensity * dt) >= 0 && object->getOutlineColor().a + (ratio_a * intensity * dt) <= 255)
-            temp.a = static_cast<sf::Uint8>(object->getOutlineColor().a + (ratio_a * intensity * dt));
+		if (sf::Mouse::isButtonPressed(button) && m_holding)
+			m_object->setPosition(mousePosition + m_catchDiff);
+		else
+			m_holding = false;
 
+		return m_holding;
+	}
 
 
-        if      (ratio_r < 0 && temp.r < target_color.r) temp.r = target_color.r;
-        else if (ratio_r > 0 && temp.r > target_color.r) temp.r = target_color.r;
+	////////////////////////////////
 
-        if      (ratio_g < 0 && temp.g < target_color.g) temp.g = target_color.g;
-        else if (ratio_g > 0 && temp.g > target_color.g) temp.g = target_color.g;
 
-        if      (ratio_b < 0 && temp.b < target_color.b) temp.b = target_color.b;
-        else if (ratio_b > 0 && temp.b > target_color.b) temp.b = target_color.b;
+	bool HoldObjectWithMouse::HoldObject(sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event)
+	{
+		return this->update(button, mousePosition, event);
+	}
 
-        if      (ratio_a < 0 && temp.a < target_color.a) temp.a = target_color.a;
-        else if (ratio_a > 0 && temp.a > target_color.a) temp.a = target_color.a;
 
 
-        if      (temp.r < 0) temp.r = 0;
-        else if (temp.r > 255) temp.r = 255;
+	////////////////////////////////////////////////////////////////
 
-        if      (temp.g < 0) temp.g = 0;
-        else if (temp.g > 255) temp.g = 255;
 
-        if      (temp.b < 0) temp.b = 0;
-        else if (temp.b > 255) temp.b = 255;
 
-        if      (temp.a < 0) temp.a = 0;
-        else if (temp.a > 255) temp.a = 255;
+	void HoldObjectWithMouse::setHoldStatus(bool status)
+	{
+		m_holding = status;
+	}
 
 
-        object->setOutlineColor(temp);
 
-        return true;
-    }
-    else
-    {
-        sf::Color temp = object->getOutlineColor();
 
 
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        if (object->getOutlineColor().r - (ratio_r * intensity * dt) / 2 >= 0 && object->getOutlineColor().r - (ratio_r * intensity * dt) / 2 <= 255)
-            temp.r = static_cast<sf::Uint8>(object->getOutlineColor().r - (ratio_r * intensity * dt) / 2);
-        if (object->getOutlineColor().g - (ratio_g * intensity * dt) / 2 >= 0 && object->getOutlineColor().g - (ratio_g * intensity * dt) / 2 <= 255)
-            temp.g = static_cast<sf::Uint8>(object->getOutlineColor().g - (ratio_g * intensity * dt) / 2);
-        if (object->getOutlineColor().b - (ratio_b * intensity * dt) / 2 >= 0 && object->getOutlineColor().b - (ratio_b * intensity * dt) / 2 <= 255)
-            temp.b = static_cast<sf::Uint8>(object->getOutlineColor().b - (ratio_b * intensity * dt) / 2);
-        if (object->getOutlineColor().a - (ratio_a * intensity * dt) >= 0 && object->getOutlineColor().a - (ratio_a * intensity * dt) <= 255)
-            temp.a = static_cast<sf::Uint8>(object->getOutlineColor().a - (ratio_a * intensity * dt));
 
 
 
-        if      (ratio_r < 0 && temp.r > basic_color.r) temp.r = basic_color.r;
-        else if (ratio_r > 0 && temp.r < basic_color.r) temp.r = basic_color.r;
 
-        if      (ratio_g < 0 && temp.g > basic_color.g) temp.g = basic_color.g;
-        else if (ratio_g > 0 && temp.g < basic_color.g) temp.g = basic_color.g;
+	HoldView::HoldView()
+		: m_view(nullptr)
+		, m_deltaP(0, 0)
+		, m_border(0, 0, 0, 0)
+	{
 
-        if      (ratio_b < 0 && temp.b > basic_color.b) temp.b = basic_color.b;
-        else if (ratio_b > 0 && temp.b < basic_color.b) temp.b = basic_color.b;
+	}
 
-        if      (ratio_a < 0 && temp.a > basic_color.a) temp.a = basic_color.a;
-        else if (ratio_a > 0 && temp.a < basic_color.a) temp.a = basic_color.a;
 
+	HoldView::HoldView(sf::View* view)
+		: m_view(view)
+		, m_deltaP(0, 0)
+		, m_border(0, 0, 0, 0)
+	{
 
+	}
 
 
-        if      (temp.r < 0) temp.r = 0;
-        else if (temp.r > 255) temp.r = 255;
+	////////////////////////////////
 
-        if      (temp.g < 0) temp.g = 0;
-        else if (temp.g > 255) temp.g = 255;
 
-        if      (temp.b < 0) temp.b = 0;
-        else if (temp.b > 255) temp.b = 255;
+	HoldView::~HoldView()
+	{
 
-        if      (temp.a < 0) temp.a = 0;
-        else if (temp.a > 255) temp.a = 255;
+	}
 
 
+	////////////////////////////////////////////////////////////////
 
-        object->setOutlineColor(temp);
 
+	void HoldView::setView(sf::View* view)
+	{
+		m_view = view;
+	}
 
-        return false;
-    }
-}
 
+	////////////////////////////////////////////////////////////////
 
 
-bool SmoothTextColorChange(GuiObject* object, bool tf_argumet, sf::Vector2f& mousePosition, const sf::Color& target_color, const sf::Color& basic_color, const float intensity, const float dt)
-{
-    /** \brief changes color of the object's text smoothly
-     *
-     * \param object        GuiObject child that is going to be changed
-     * \param tf_argument   true - changes to specified color
-                            false - changes back to basic color
-     * \param mousePosition if object is invaded by the mouse
-     * \param target_color  the color that will be put on the object at the end of the change
-     * \param basic_color   the color before the change
-     * \param intensity     the speed of changes
-     * \param dt            delta time - used to change the color independently from the user's fps
-     * \return the same as tf_argument
-     *
-     */
+	void HoldView::setBorders(const sf::Vector2f& left_top, const sf::Vector2f& right_bottom)
+	{
+		if (m_view->getCenter().x - m_view->getSize().x * 0.5 < left_top.x) m_view->setCenter(left_top.x + m_view->getSize().x * 0.5, m_view->getCenter().y);
+		if (m_view->getCenter().y - m_view->getSize().y * 0.5 < left_top.y) m_view->setCenter(m_view->getCenter().x, left_top.y + m_view->getSize().y * 0.5);
 
+		if (m_view->getCenter().x + m_view->getSize().x * 0.5 > right_bottom.x) m_view->setCenter(right_bottom.x - m_view->getSize().x * 0.5, m_view->getCenter().y);
+		if (m_view->getCenter().y + m_view->getSize().y * 0.5 > right_bottom.y) m_view->setCenter(m_view->getCenter().x, right_bottom.y - m_view->getSize().y * 0.5);
 
-    float ratio_r = target_color.r - basic_color.r;
-    float ratio_g = target_color.g - basic_color.g;
-    float ratio_b = target_color.b - basic_color.b;
-    float ratio_a = target_color.a - basic_color.a;
+		m_border = Vector4f(left_top, right_bottom);
+	}
 
-    if (tf_argumet)
-    {
-        sf::Color temp = object->getTextColor();
 
+	void HoldView::setBorders(const Vector4f& border)
+	{
+		if (m_view->getCenter().x - m_view->getSize().x * 0.5 < border.x) m_view->setCenter(border.x + m_view->getSize().x * 0.5, m_view->getCenter().y);
+		if (m_view->getCenter().y - m_view->getSize().y * 0.5 < border.y) m_view->setCenter(m_view->getCenter().x, border.y + m_view->getSize().y * 0.5);
 
-        if (object->getTextColor().r + (ratio_r * intensity * dt) >= 0 && object->getTextColor().r + (ratio_r * intensity * dt) <= 255)
-            temp.r = static_cast<sf::Uint8>(object->getTextColor().r + (ratio_r * intensity * dt));
-        if (object->getTextColor().g + (ratio_g * intensity * dt) >= 0 && object->getTextColor().g + (ratio_g * intensity * dt) <= 255)
-            temp.g = static_cast<sf::Uint8>(object->getTextColor().g + (ratio_g * intensity * dt));
-        if (object->getTextColor().b + (ratio_b * intensity * dt) >= 0 && object->getTextColor().b + (ratio_b * intensity * dt) <= 255)
-            temp.b = static_cast<sf::Uint8>(object->getTextColor().b + (ratio_b * intensity * dt));
-        if (object->getTextColor().a + (ratio_a * intensity * dt) >= 0 && object->getTextColor().a + (ratio_a * intensity * dt) <= 255)
-            temp.a = static_cast<sf::Uint8>(object->getTextColor().a + (ratio_a * intensity * dt));
+		if (m_view->getCenter().x + m_view->getSize().x * 0.5 > border.z) m_view->setCenter(border.z - m_view->getSize().x * 0.5, m_view->getCenter().y);
+		if (m_view->getCenter().y + m_view->getSize().y * 0.5 > border.v) m_view->setCenter(m_view->getCenter().x, border.y - m_view->getSize().y * 0.5);
 
+		m_border = border;
+	}
 
 
-        if      (ratio_r < 0 && temp.r < target_color.r) temp.r = target_color.r;
-        else if (ratio_r > 0 && temp.r > target_color.r) temp.r = target_color.r;
 
-        if      (ratio_g < 0 && temp.g < target_color.g) temp.g = target_color.g;
-        else if (ratio_g > 0 && temp.g > target_color.g) temp.g = target_color.g;
+	////////////////////////////////////////////////////////////////
 
-        if      (ratio_b < 0 && temp.b < target_color.b) temp.b = target_color.b;
-        else if (ratio_b > 0 && temp.b > target_color.b) temp.b = target_color.b;
 
-        if      (ratio_a < 0 && temp.a < target_color.a) temp.a = target_color.a;
-        else if (ratio_a > 0 && temp.a > target_color.a) temp.a = target_color.a;
 
+	bool HoldView::updateClick(const sf::Vector2f& mousePosition, sf::Mouse::Button button, sf::Event& event)
+	{
+		if (event.type == sf::Event::MouseButtonPressed && event.key.code == button)
+		{
+			//m_star_pos = mousePosition;
+			m_deltaP = m_view->getCenter() - mousePosition;
+			m_view->setCenter(-mousePosition - m_deltaP);
+			m_deltaP = m_view->getCenter() - mousePosition;
 
-        if      (temp.r < 0) temp.r = 0;
-        else if (temp.r > 255) temp.r = 255;
+			return true;
+		}
+		return false;
+	}
 
-        if      (temp.g < 0) temp.g = 0;
-        else if (temp.g > 255) temp.g = 255;
 
-        if      (temp.b < 0) temp.b = 0;
-        else if (temp.b > 255) temp.b = 255;
+	bool HoldView::update(const sf::Vector2f& mousePosition, sf::Mouse::Button button)
+	{
+		if (sf::Mouse::isButtonPressed(button))
+		{
+			m_view->setCenter(-mousePosition - m_deltaP);
 
-        if      (temp.a < 0) temp.a = 0;
-        else if (temp.a > 255) temp.a = 255;
+			if (m_border != Vector4f(0, 0, 0, 0))
+			{
+				if (m_view->getCenter().x - m_view->getSize().x * 0.5 < m_border.x) m_view->setCenter(m_border.x + m_view->getSize().x * 0.5, m_view->getCenter().y);
+				if (m_view->getCenter().y - m_view->getSize().y * 0.5 < m_border.y) m_view->setCenter(m_view->getCenter().x, m_border.y + m_view->getSize().y * 0.5);
 
+				if (m_view->getCenter().x + m_view->getSize().x * 0.5 > m_border.z) m_view->setCenter(m_border.z - m_view->getSize().x * 0.5, m_view->getCenter().y);
+				if (m_view->getCenter().y + m_view->getSize().y * 0.5 > m_border.v) m_view->setCenter(m_view->getCenter().x, m_border.v - m_view->getSize().y * 0.5);
+			}
 
-        object->setTextColor(temp);
+			return true;
+		}
 
-        return true;
-    }
-    else
-    {
-        sf::Color temp = object->getTextColor();
 
+		return false;
+	}
 
 
-        if (object->getTextColor().r - (ratio_r * intensity * dt) / 2 >= 0 && object->getTextColor().r - (ratio_r * intensity * dt) / 2 <= 255)
-            temp.r = static_cast<sf::Uint8>(object->getTextColor().r - (ratio_r * intensity * dt) / 2);
-        if (object->getTextColor().g - (ratio_g * intensity * dt) / 2 >= 0 && object->getTextColor().g - (ratio_g * intensity * dt) / 2 <= 255)
-            temp.g = static_cast<sf::Uint8>(object->getTextColor().g - (ratio_g * intensity * dt) / 2);
-        if (object->getTextColor().b - (ratio_b * intensity * dt) / 2 >= 0 && object->getTextColor().b - (ratio_b * intensity * dt) / 2 <= 255)
-            temp.b = static_cast<sf::Uint8>(object->getTextColor().b - (ratio_b * intensity * dt) / 2);
-        if (object->getTextColor().a - (ratio_a * intensity * dt) >= 0 && object->getTextColor().a - (ratio_a * intensity * dt) <= 255)
-            temp.a = static_cast<sf::Uint8>(object->getTextColor().a - (ratio_a * intensity * dt));
 
 
 
-        if      (ratio_r < 0 && temp.r > basic_color.r) temp.r = basic_color.r;
-        else if (ratio_r > 0 && temp.r < basic_color.r) temp.r = basic_color.r;
+	//-------------------------                                                         -------------------------//
+	//+++                                                                                                     +++//
+	//==============               F U N C T I O N S    W I T H    G U I O B J E C T               ==============//
+	//+++                                                                                                     +++//
+	//-------------------------                                                         -------------------------//
 
-        if      (ratio_g < 0 && temp.g > basic_color.g) temp.g = basic_color.g;
-        else if (ratio_g > 0 && temp.g < basic_color.g) temp.g = basic_color.g;
 
-        if      (ratio_b < 0 && temp.b > basic_color.b) temp.b = basic_color.b;
-        else if (ratio_b > 0 && temp.b < basic_color.b) temp.b = basic_color.b;
 
-        if      (ratio_a < 0 && temp.a > basic_color.a) temp.a = basic_color.a;
-        else if (ratio_a > 0 && temp.a < basic_color.a) temp.a = basic_color.a;
 
 
+	bool SmoothColorChange(GuiObject* object, bool tf_argumet, const sf::Color& target_color, const sf::Color& basic_color, Color<float>& float_color, const float intensity, const float dt)
+	{ 
+		int rs = sgn(target_color.r - basic_color.r);
+		int gs = sgn(target_color.g - basic_color.g);
+		int bs = sgn(target_color.b - basic_color.b);
+		int as = sgn(target_color.a - basic_color.a);
 
 
-        if      (temp.r < 0) temp.r = 0;
-        else if (temp.r > 255) temp.r = 255;
+		if (tf_argumet)
+		{
+			if (float_color == Colorf(target_color))
+				return false;
 
-        if      (temp.g < 0) temp.g = 0;
-        else if (temp.g > 255) temp.g = 255;
+			float_color.r += intensity * dt * rs;
+			float_color.g += intensity * dt * gs;
+			float_color.b += intensity * dt * bs;
+			float_color.a += intensity * dt * as;
 
-        if      (temp.b < 0) temp.b = 0;
-        else if (temp.b > 255) temp.b = 255;
+			if (rs > 0)
+			{
+				if (float_color.r > static_cast<float>(target_color.r) || float_color.r < static_cast<float>(basic_color.r))
+					float_color.r = static_cast<float>(target_color.r);
+			}
+			else
+			{
+				if (float_color.r < static_cast<float>(target_color.r) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.r = static_cast<float>(target_color.r);
+			}
 
-        if      (temp.a < 0) temp.a = 0;
-        else if (temp.a > 255) temp.a = 255;
+			if (gs > 0)
+			{
+				if (float_color.g > static_cast<float>(target_color.g) || float_color.g < static_cast<float>(basic_color.g))
+					float_color.g = static_cast<float>(target_color.g);
+			}
+			else
+			{
+				if (float_color.g < static_cast<float>(target_color.g) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.g = static_cast<float>(target_color.g);
+			}
 
+			if (bs > 0)
+			{
+				if (float_color.b > static_cast<float>(target_color.b) || float_color.b < static_cast<float>(basic_color.b))
+					float_color.b = static_cast<float>(target_color.b);
+			}
+			else
+			{
+				if (float_color.b < static_cast<float>(target_color.b) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.b = static_cast<float>(target_color.b);
+			}
 
+			if (as > 0)
+			{
+				if (float_color.a > static_cast<float>(target_color.a) || float_color.a < static_cast<float>(basic_color.a))
+					float_color.a = static_cast<float>(target_color.a);
+			}
+			else
+			{
+				if (float_color.a < static_cast<float>(target_color.a) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.a = static_cast<float>(target_color.a);
+			}
 
-        object->setTextColor(temp);
 
+			if (float_color.r < 0) float_color.r = 0;
+			else if (float_color.r > 255) float_color.r = 255;
+			if (float_color.g < 0) float_color.g = 0;
+			else if (float_color.g > 255) float_color.g = 255;
+			if (float_color.b < 0) float_color.b = 0;
+			else if (float_color.b > 255) float_color.b = 255;
+			if (float_color.a < 0) float_color.a = 0;
+			else if (float_color.a > 255) float_color.a = 255;
 
-        return false;
-    }
-}
 
+			object->setFillColor(sf::Color(
+				static_cast<sf::Uint8>(float_color.r),
+				static_cast<sf::Uint8>(float_color.g),
+				static_cast<sf::Uint8>(float_color.b),
+				static_cast<sf::Uint8>(float_color.a)));
+		}
+		else
+		{
+			if (float_color == Colorf(basic_color))
+				return false;
 
+			float_color.r -= intensity * dt * rs;
+			float_color.g -= intensity * dt * gs;
+			float_color.b -= intensity * dt * bs;
+			float_color.a -= intensity * dt * as;
 
-bool SmoothMove(GuiObject* object, const sf::Vector2f& destination, const sf::Vector2f& start_position, const float speed, const float dt)
-{
-    /** \brief moves object smoothly
-     *
-     * \param object            GuiObject child will be moved
-     * \param destination       positon where object is moved
-     * \param start_position    the last stable object position, but you can use object.getPosition() if you want
-     * \param speed             px / frame speed of movement
-     * \param dt                delta time - used to change the color independently from the user's fps
-     * \return if object was moved - true
-     *
-     */
 
+			if (rs > 0)
+			{
+				if (float_color.r > static_cast<float>(target_color.r) || float_color.r < static_cast<float>(basic_color.r))
+					float_color.r = static_cast<float>(basic_color.r);
+			}
+			else
+			{
+				if (float_color.r < static_cast<float>(target_color.r) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.r = static_cast<float>(basic_color.r);
+			}
 
-    if (destination != start_position)
-    {
-        sf::Vector2f temp;
+			if (gs > 0)
+			{
+				if (float_color.g > static_cast<float>(target_color.g) || float_color.g < static_cast<float>(basic_color.g))
+					float_color.g = static_cast<float>(basic_color.g);
+			}
+			else
+			{
+				if (float_color.g < static_cast<float>(target_color.g) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.g = static_cast<float>(basic_color.g);
+			}
 
+			if (bs > 0)
+			{
+				if (float_color.b > static_cast<float>(target_color.b) || float_color.b < static_cast<float>(basic_color.b))
+					float_color.b = static_cast<float>(target_color.b);
+			}
+			else
+			{
+				if (float_color.b < static_cast<float>(target_color.b) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.b = static_cast<float>(basic_color.b);
+			}
 
-        const float X = destination.x - start_position.x,
-                    Y = destination.y - start_position.y;
+			if (as > 0)
+			{
+				if (float_color.a > static_cast<float>(target_color.a) || float_color.a < static_cast<float>(basic_color.a))
+					float_color.a = static_cast<float>(basic_color.a);
+			}
+			else
+			{
+				if (float_color.a < static_cast<float>(target_color.a) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.a = static_cast<float>(basic_color.a);
+			}
 
-        float angle = (atan(X / Y));
 
-        if (Y > 0)
-        {
-            temp.x = sin(angle) * speed * dt;
-            temp.y = cos(angle) * speed * dt;
+			if (float_color.r < 0) float_color.r = 0;
+			else if (float_color.r > 255) float_color.r = 255;
+			if (float_color.g < 0) float_color.g = 0;
+			else if (float_color.g > 255) float_color.g = 255;
+			if (float_color.b < 0) float_color.b = 0;
+			else if (float_color.b > 255) float_color.b = 255;
+			if (float_color.a < 0) float_color.a = 0;
+			else if (float_color.a > 255) float_color.a = 255;
 
-            if (Y == 0)
-                temp.x = sin(angle) * speed * -dt;
-        }
-        else
-        {
-            temp.x = sin(angle) * speed * -dt;
-            temp.y = cos(angle) * speed * -dt;
 
-            if (Y == 0)
-                temp.x = sin(angle) * speed * dt;
-        }
+			object->setFillColor(sf::Color(
+				static_cast<sf::Uint8>(float_color.r),
+				static_cast<sf::Uint8>(float_color.g),
+				static_cast<sf::Uint8>(float_color.b),
+				static_cast<sf::Uint8>(float_color.a)));
+		}
 
-        object->move(temp);
+		return tf_argumet;
+	}
 
 
-        if      (destination.x - start_position.x > 0 && object->getPosition().x > destination.x)
-            object->setPosition(destination.x, object->getPosition().y);
-        else if (destination.x - start_position.x < 0 && object->getPosition().x < destination.x)
-            object->setPosition(destination.x, object->getPosition().y);
 
-        if      (destination.y - start_position.y > 0 && object->getPosition().y > destination.y)
-            object->setPosition(object->getPosition().x, destination.y);
-        else if (destination.y - start_position.y < 0 && object->getPosition().y < destination.y)
-            object->setPosition(object->getPosition().x, destination.y);
+	////////////////////////////////////////////////////////////////
 
-        return true;
 
-    }
-    else return false;
-}
 
+	bool SmoothOutlineColorChange(GuiObject* object, bool tf_argumet, const sf::Color& target_color, const sf::Color& basic_color, Color<float>& float_color, const float intensity, const float dt)
+	{
+		int rs = sgn(target_color.r - basic_color.r);
+		int gs = sgn(target_color.g - basic_color.g);
+		int bs = sgn(target_color.b - basic_color.b);
+		int as = sgn(target_color.a - basic_color.a);
 
-bool SmoothScale(GuiObject* object, const float target_scale, const float speed, const float dt, const float basic_scale)
-{
-    /** \brief scales object smoothly
-     *
-     * \param object        GuiObject child will be moved
-     * \param target_scale  targeted scale
-     * \param basic_scale   previous scale of the object
-     * \param speed         px / frame speed of movement
-     * \param dt            delta time - used to change the color independently from the user's fps
-     * \return if object was scaled - true
-     *
-     */
 
-    if (target_scale != basic_scale)
-    {
-        float amp = target_scale - basic_scale;
+		if (tf_argumet)
+		{
+			if (float_color == Colorf(target_color))
+				return false;
 
-        object->scale(sf::Vector2f(1 + amp * speed * dt, 1 + amp * speed * dt));
+			float_color.r += intensity * dt * rs;
+			float_color.g += intensity * dt * gs;
+			float_color.b += intensity * dt * bs;
+			float_color.a += intensity * dt * as;
 
-        if (amp > 0 && object->getScale().x > target_scale)
-        {
-            object->setScale(sf::Vector2f(target_scale, target_scale));
-            object->setScale(sf::Vector2f(target_scale, target_scale));
-        }
-        if (amp < 0 && object->getScale().x < target_scale)
-        {
-            object->setScale(sf::Vector2f(target_scale, target_scale));
-            object->setScale(sf::Vector2f(target_scale, target_scale));
-        }
-        return true;
-    }
-    else
-        return false;
-}
+			if (rs > 0)
+			{
+				if (float_color.r > static_cast<float>(target_color.r) || float_color.r < static_cast<float>(basic_color.r))
+					float_color.r = static_cast<float>(target_color.r);
+			}
+			else
+			{
+				if (float_color.r < static_cast<float>(target_color.r) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.r = static_cast<float>(target_color.r);
+			}
 
+			if (gs > 0)
+			{
+				if (float_color.g > static_cast<float>(target_color.g) || float_color.g < static_cast<float>(basic_color.g))
+					float_color.g = static_cast<float>(target_color.g);
+			}
+			else
+			{
+				if (float_color.g < static_cast<float>(target_color.g) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.g = static_cast<float>(target_color.g);
+			}
 
+			if (bs > 0)
+			{
+				if (float_color.b > static_cast<float>(target_color.b) || float_color.b < static_cast<float>(basic_color.b))
+					float_color.b = static_cast<float>(target_color.b);
+			}
+			else
+			{
+				if (float_color.b < static_cast<float>(target_color.b) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.b = static_cast<float>(target_color.b);
+			}
 
-bool ViewHolding(sf::View* view, sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event, const sf::Vector2f& top_left_barrier_cord, const sf::Vector2f& bottom_right_barrier_cord)
-{
-    /** \brief ! use one at time - static members !
-                moves sf::View when user is "holding" it (like a map)
-                don't really use with KEngine Slider, they don't like each other
-     *
-     * \param view                      sf::View that you want to make "mappy"
-     * \param button                    holding this button will move the view
-     * \param mousePosition             set relative to view
-     * \param event                     sf::Event
-     * \param top_left_barrier_cord     coordinates of top left corner of the "map"
-     * \param bottom_right_barrier_cord coordinates of bottom right corner of the "map"
-     * \return if button is pressed - true
-     *
-     */
+			if (as > 0)
+			{
+				if (float_color.a > static_cast<float>(target_color.a) || float_color.a < static_cast<float>(basic_color.a))
+					float_color.a = static_cast<float>(target_color.a);
+			}
+			else
+			{
+				if (float_color.a < static_cast<float>(target_color.a) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.a = static_cast<float>(target_color.a);
+			}
 
 
-    static bool holded;
-    static sf::Vector2f viev_speed;
-    static sf::Vector2f startPos;
+			if (float_color.r < 0) float_color.r = 0;
+			else if (float_color.r > 255) float_color.r = 255;
+			if (float_color.g < 0) float_color.g = 0;
+			else if (float_color.g > 255) float_color.g = 255;
+			if (float_color.b < 0) float_color.b = 0;
+			else if (float_color.b > 255) float_color.b = 255;
+			if (float_color.a < 0) float_color.a = 0;
+			else if (float_color.a > 255) float_color.a = 255;
 
-    if (sf::Event::MouseButtonPressed && event.key.code == button)
-    {
-        holded = true;
-        startPos = sf::Vector2f(mousePosition);
-    }
 
-    if (sf::Mouse::isButtonPressed(button) && holded)
-    {
-        viev_speed.x = mousePosition.x - startPos.x;
-        viev_speed.y = mousePosition.y - startPos.y;
-        view->move(-viev_speed.x, -viev_speed.y);
-    }
-    else holded = false;
+			object->setOutlineColor(sf::Color(static_cast<sf::Uint8>(float_color.r),
+				static_cast<sf::Uint8>(float_color.g),
+				static_cast<sf::Uint8>(float_color.b),
+				static_cast<sf::Uint8>(float_color.a)));
+		}
+		else
+		{
+			if (float_color == Colorf(basic_color))
+				return false;
 
+			float_color.r -= intensity * dt * rs;
+			float_color.g -= intensity * dt * gs;
+			float_color.b -= intensity * dt * bs;
+			float_color.a -= intensity * dt * as;
 
-    if (view->getCenter().x - view->getSize().x / 2 < top_left_barrier_cord.x) view->setCenter(top_left_barrier_cord.x + view->getSize().x / 2, view->getCenter().y);
-    if (view->getCenter().y - view->getSize().y / 2 < top_left_barrier_cord.y) view->setCenter(view->getCenter().x, top_left_barrier_cord.y + view->getSize().y / 2);
 
-    if (view->getCenter().x + view->getSize().x / 2 > bottom_right_barrier_cord.x) view->setCenter(bottom_right_barrier_cord.x - view->getSize().x / 2, view->getCenter().y);
-    if (view->getCenter().y + view->getSize().y / 2 > bottom_right_barrier_cord.y) view->setCenter(view->getCenter().x, bottom_right_barrier_cord .y - view->getSize().y / 2);
+			if (rs > 0)
+			{
+				if (float_color.r > static_cast<float>(target_color.r) || float_color.r < static_cast<float>(basic_color.r))
+					float_color.r = static_cast<float>(basic_color.r);
+			}
+			else
+			{
+				if (float_color.r < static_cast<float>(target_color.r) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.r = static_cast<float>(basic_color.r);
+			}
 
-    return holded;
-}
+			if (gs > 0)
+			{
+				if (float_color.g > static_cast<float>(target_color.g) || float_color.g < static_cast<float>(basic_color.g))
+					float_color.g = static_cast<float>(basic_color.g);
+			}
+			else
+			{
+				if (float_color.g < static_cast<float>(target_color.g) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.g = static_cast<float>(basic_color.g);
+			}
 
+			if (bs > 0)
+			{
+				if (float_color.b > static_cast<float>(target_color.b) || float_color.b < static_cast<float>(basic_color.b))
+					float_color.b = static_cast<float>(target_color.b);
+			}
+			else
+			{
+				if (float_color.b < static_cast<float>(target_color.b) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.b = static_cast<float>(basic_color.b);
+			}
 
+			if (as > 0)
+			{
+				if (float_color.a > static_cast<float>(target_color.a) || float_color.a < static_cast<float>(basic_color.a))
+					float_color.a = static_cast<float>(basic_color.a);
+			}
+			else
+			{
+				if (float_color.a < static_cast<float>(target_color.a) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.a = static_cast<float>(basic_color.a);
+			}
 
-bool isOutsideTheView(GuiObject* object, sf::View* view, const sf::Vector2f& shift)
-{
-    /** \brief checks if the given object is outside the view
-     *
-     * \param object    object that is being checked
-     * \param view      the view here works like a collision detection line
-     * \param shift     shift in pixels
-     * \return if is outside - true
-     *
-     */
 
+			if (float_color.r < 0) float_color.r = 0;
+			else if (float_color.r > 255) float_color.r = 255;
+			if (float_color.g < 0) float_color.g = 0;
+			else if (float_color.g > 255) float_color.g = 255;
+			if (float_color.b < 0) float_color.b = 0;
+			else if (float_color.b > 255) float_color.b = 255;
+			if (float_color.a < 0) float_color.a = 0;
+			else if (float_color.a > 255) float_color.a = 255;
 
-    if (object->getShapeCentre().x + object->getSize().x * object->getScale().x / 2 + shift.x < view->getCenter().x - view->getSize().x / 2)
-        return true;
-    if (object->getShapeCentre().x - object->getSize().x * object->getScale().x / 2 - shift.x > view->getCenter().x + view->getSize().x / 2)
-        return true;
-    if (object->getShapeCentre().y + object->getSize().y * object->getScale().y / 2 + shift.y < view->getCenter().y - view->getSize().y / 2)
-        return true;
-    if (object->getShapeCentre().y - object->getSize().y * object->getScale().y / 2 - shift.y > view->getCenter().y + view->getSize().y / 2)
-        return true;
-    return false;
-}
 
+			object->setOutlineColor(sf::Color(static_cast<sf::Uint8>(float_color.r),
+				static_cast<sf::Uint8>(float_color.g),
+				static_cast<sf::Uint8>(float_color.b),
+				static_cast<sf::Uint8>(float_color.a)));
+		}
 
-bool isQuittingTheView(GuiObject* object, sf::View* view)
-{
-    /** \brief checks if the given object is trying to quit the view (collides with its barriers)
-     *
-     * \param object    object that is being checked
-     * \param view      the view here works like a collision detection line
-     * \return if is quitting - true
-     *
-     */
+		return tf_argumet;
+	}
 
-    if (object->getShapeCentre().x - object->getSize().x / 2 < view->getCenter().x * object->getScale().x - view->getSize().x / 2)
-        return true;
-    if (object->getShapeCentre().x + object->getSize().x / 2 > view->getCenter().x * object->getScale().x + view->getSize().x / 2)
-        return true;
-    if (object->getShapeCentre().y - object->getSize().y / 2 < view->getCenter().y * object->getScale().y - view->getSize().y / 2)
-        return true;
-    if (object->getShapeCentre().y + object->getSize().y / 2 > view->getCenter().y * object->getScale().y + view->getSize().y / 2)
-        return true;
-    return false;
-}
 
 
-bool HoldObject(GuiObject* object, sf::Mouse::Button button, const sf::Vector2f& mousePosition)
-{
-    /** \brief sets centre of the given object to position of the mouse, laggy, don't really use it a lot
-     *
-     * \param object            object that is being held
-     * \param button            mouse button
-     * \param mousePosition     position of the mouse cursor
-     * \return if held - true
-     *
-     */
+	////////////////////////////////////////////////////////////////
 
-    if (sf::Mouse::isButtonPressed(button) && object->isInvaded(mousePosition))
-        object->setPositionByCentre(sf::Vector2f(mousePosition.x , mousePosition.y));
-}
 
 
-}
+	bool SmoothTextColorChange(GuiObject* object, bool tf_argumet, const sf::Color& target_color, const sf::Color& basic_color, Color<float>& float_color, const float intensity, const float dt)
+	{
+		int rs = sgn(target_color.r - basic_color.r);
+		int gs = sgn(target_color.g - basic_color.g);
+		int bs = sgn(target_color.b - basic_color.b);
+		int as = sgn(target_color.a - basic_color.a);
+
+
+		if (tf_argumet)
+		{
+			if (float_color == Colorf(target_color))
+				return false;
+
+			float_color.r += intensity * dt * rs;
+			float_color.g += intensity * dt * gs;
+			float_color.b += intensity * dt * bs;
+			float_color.a += intensity * dt * as;
+
+			if (rs > 0)
+			{
+				if (float_color.r > static_cast<float>(target_color.r) || float_color.r < static_cast<float>(basic_color.r))
+					float_color.r = static_cast<float>(target_color.r);
+			}
+			else
+			{
+				if (float_color.r < static_cast<float>(target_color.r) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.r = static_cast<float>(target_color.r);
+			}
+
+			if (gs > 0)
+			{
+				if (float_color.g > static_cast<float>(target_color.g) || float_color.g < static_cast<float>(basic_color.g))
+					float_color.g = static_cast<float>(target_color.g);
+			}
+			else
+			{
+				if (float_color.g < static_cast<float>(target_color.g) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.g = static_cast<float>(target_color.g);
+			}
+
+			if (bs > 0)
+			{
+				if (float_color.b > static_cast<float>(target_color.b) || float_color.b < static_cast<float>(basic_color.b))
+					float_color.b = static_cast<float>(target_color.b);
+			}
+			else
+			{
+				if (float_color.b < static_cast<float>(target_color.b) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.b = static_cast<float>(target_color.b);
+			}
+
+			if (as > 0)
+			{
+				if (float_color.a > static_cast<float>(target_color.a) || float_color.a < static_cast<float>(basic_color.a))
+					float_color.a = static_cast<float>(target_color.a);
+			}
+			else
+			{
+				if (float_color.a < static_cast<float>(target_color.a) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.a = static_cast<float>(target_color.a);
+			}
+
+
+			if (float_color.r < 0) float_color.r = 0;
+			else if (float_color.r > 255) float_color.r = 255;
+			if (float_color.g < 0) float_color.g = 0;
+			else if (float_color.g > 255) float_color.g = 255;
+			if (float_color.b < 0) float_color.b = 0;
+			else if (float_color.b > 255) float_color.b = 255;
+			if (float_color.a < 0) float_color.a = 0;
+			else if (float_color.a > 255) float_color.a = 255;
+
+
+			object->setTextColor(sf::Color(static_cast<sf::Uint8>(float_color.r),
+				static_cast<sf::Uint8>(float_color.g),
+				static_cast<sf::Uint8>(float_color.b),
+				static_cast<sf::Uint8>(float_color.a)));
+		}
+		else
+		{
+			if (float_color == Colorf(basic_color))
+				return false;
+
+			float_color.r -= intensity * dt * rs;
+			float_color.g -= intensity * dt * gs;
+			float_color.b -= intensity * dt * bs;
+			float_color.a -= intensity * dt * as;
+
+
+			if (rs > 0)
+			{
+				if (float_color.r > static_cast<float>(target_color.r) || float_color.r < static_cast<float>(basic_color.r))
+					float_color.r = static_cast<float>(basic_color.r);
+			}
+			else
+			{
+				if (float_color.r < static_cast<float>(target_color.r) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.r = static_cast<float>(basic_color.r);
+			}
+
+			if (gs > 0)
+			{
+				if (float_color.g > static_cast<float>(target_color.g) || float_color.g < static_cast<float>(basic_color.g))
+					float_color.g = static_cast<float>(basic_color.g);
+			}
+			else
+			{
+				if (float_color.g < static_cast<float>(target_color.g) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.g = static_cast<float>(basic_color.g);
+			}
+
+			if (bs > 0)
+			{
+				if (float_color.b > static_cast<float>(target_color.b) || float_color.b < static_cast<float>(basic_color.b))
+					float_color.b = static_cast<float>(target_color.b);
+			}
+			else
+			{
+				if (float_color.b < static_cast<float>(target_color.b) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.b = static_cast<float>(basic_color.b);
+			}
+
+			if (as > 0)
+			{
+				if (float_color.a > static_cast<float>(target_color.a) || float_color.a < static_cast<float>(basic_color.a))
+					float_color.a = static_cast<float>(basic_color.a);
+			}
+			else
+			{
+				if (float_color.a < static_cast<float>(target_color.a) || float_color.a > static_cast<float>(basic_color.a))
+					float_color.a = static_cast<float>(basic_color.a);
+			}
+
+
+			if (float_color.r < 0) float_color.r = 0;
+			else if (float_color.r > 255) float_color.r = 255;
+			if (float_color.g < 0) float_color.g = 0;
+			else if (float_color.g > 255) float_color.g = 255;
+			if (float_color.b < 0) float_color.b = 0;
+			else if (float_color.b > 255) float_color.b = 255;
+			if (float_color.a < 0) float_color.a = 0;
+			else if (float_color.a > 255) float_color.a = 255;
+
+
+			object->setTextColor(sf::Color(static_cast<sf::Uint8>(float_color.r),
+				static_cast<sf::Uint8>(float_color.g),
+				static_cast<sf::Uint8>(float_color.b),
+				static_cast<sf::Uint8>(float_color.a)));
+		}
+
+		return tf_argumet;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+	bool SmoothMove(GuiObject* object, const sf::Vector2f& destination, const sf::Vector2f& start_position, const float speed, const float dt)
+	{
+		if (destination != start_position)
+		{
+			sf::Vector2f temp;
+
+
+			const float
+				X = destination.x - start_position.x,
+				Y = destination.y - start_position.y;
+
+			float angle = (atan(X / Y));
+
+			if (Y > 0) // idk why, but only with Y it works
+			{
+				temp.x = sin(angle) * speed * dt;
+				temp.y = cos(angle) * speed * dt;
+
+				if (Y == 0)
+					temp.x = sin(angle) * speed * -dt;
+			}
+			else
+			{
+				temp.x = sin(angle) * speed * -dt;
+				temp.y = cos(angle) * speed * -dt;
+
+				if (Y == 0)
+					temp.x = sin(angle) * speed * dt;
+			}
+
+			object->move(temp);
+
+
+			if (destination.x - start_position.x > 0 && object->getPosition().x > destination.x)
+				object->setPosition(destination.x, object->getPosition().y);
+			else if (destination.x - start_position.x < 0 && object->getPosition().x < destination.x)
+				object->setPosition(destination.x, object->getPosition().y);
+
+			if (destination.y - start_position.y > 0 && object->getPosition().y > destination.y)
+				object->setPosition(object->getPosition().x, destination.y);
+			else if (destination.y - start_position.y < 0 && object->getPosition().y < destination.y)
+				object->setPosition(object->getPosition().x, destination.y);
+
+			return true;
+
+		}
+		else return false;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+	bool SmoothRotation(GuiObject* object, float target_rotation, const float speed, const float dt)
+	{
+		if (object->getRotation() == target_rotation)
+			return false;
+
+		varGuard(target_rotation, 0.f, 360.f);
+
+		object->rotate(speed * dt * sgn(target_rotation - object->getRotation()));
+
+		if (target_rotation - object->getRotation() > 1)
+		{
+			if (object->getRotation() > target_rotation)
+				object->setRotation(target_rotation);
+			return false;
+		}
+		else
+		{
+			if (object->getRotation() < target_rotation)
+				object->setRotation(target_rotation);
+			return false;
+		}
+
+		return true;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+	bool SmoothScale(GuiObject* object, const sf::Vector2f& target_scale, const float speed, const float dt)
+	{
+		if (target_scale == object->getScale())
+			return false;
+
+		sf::Vector2f delta(target_scale - object->getScale());
+
+		float angle = atan((delta.x) / (delta.y));
+
+		sf::Vector2f scale_buff(sin(angle) * speed * dt, cos(angle) * speed * dt);
+
+		if (delta.y < 0) // idk why, but only with y it works
+		{
+			scale_buff.x *= -1;
+			scale_buff.y *= -1;
+		}
+
+		if (delta.x > 0) // scaling up
+			if (object->getScale().x + scale_buff.x > target_scale.x)
+				scale_buff.x = target_scale.x - object->getScale().x; else;
+		else if (delta.x < 0) // scaling down
+			if (object->getScale().x - scale_buff.x < target_scale.x)
+				scale_buff.x = -target_scale.x + object->getScale().x; else;
+
+		if (delta.y > 0) // scaling up
+			if (object->getScale().y + scale_buff.y > target_scale.y)
+				scale_buff.y = target_scale.y - object->getScale().y; else;
+		else if (delta.y < 0) // scaling down
+			if (object->getScale().y - scale_buff.y < target_scale.y)
+				scale_buff.y = -target_scale.y + object->getScale().y; else;
+
+		object->setScale(object->getScale() + scale_buff);
+
+		return true;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+	bool ViewHolding(sf::View* view, sf::Mouse::Button button, const sf::Vector2f& mousePosition, sf::Event& event, const sf::Vector2f& top_left_barrier_cord, const sf::Vector2f& bottom_right_barrier_cord)
+	{
+		static bool holded;
+		static sf::Vector2f viev_speed;
+		static sf::Vector2f startPos;
+
+		if (sf::Event::MouseButtonPressed && event.key.code == button)
+		{
+			holded = true;
+			startPos = sf::Vector2f(mousePosition);
+		}
+
+		if (sf::Mouse::isButtonPressed(button) && holded)
+		{
+			viev_speed.x = mousePosition.x - startPos.x;
+			viev_speed.y = mousePosition.y - startPos.y;
+			view->move(-viev_speed.x, -viev_speed.y);
+		}
+		else holded = false;
+
+
+		if (view->getCenter().x - view->getSize().x * 0.5 < top_left_barrier_cord.x) view->setCenter(top_left_barrier_cord.x + view->getSize().x * 0.5, view->getCenter().y);
+		if (view->getCenter().y - view->getSize().y * 0.5 < top_left_barrier_cord.y) view->setCenter(view->getCenter().x, top_left_barrier_cord.y + view->getSize().y * 0.5);
+
+		if (view->getCenter().x + view->getSize().x * 0.5 > bottom_right_barrier_cord.x) view->setCenter(bottom_right_barrier_cord.x - view->getSize().x * 0.5, view->getCenter().y);
+		if (view->getCenter().y + view->getSize().y * 0.5 > bottom_right_barrier_cord.y) view->setCenter(view->getCenter().x, bottom_right_barrier_cord.y - view->getSize().y * 0.5);
+
+		return holded;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+	bool isOutsideTheView(GuiObject* object, sf::View* view, const sf::Vector2f& shift)
+	{
+		if (object->getShapeCenter().x + object->getSize().x * object->getScale().x / 2 + shift.x < view->getCenter().x - view->getSize().x * 0.5)
+			return true;
+		if (object->getShapeCenter().x - object->getSize().x * object->getScale().x / 2 - shift.x > view->getCenter().x + view->getSize().x * 0.5)
+			return true;
+		if (object->getShapeCenter().y + object->getSize().y * object->getScale().y / 2 + shift.y < view->getCenter().y - view->getSize().y * 0.5)
+			return true;
+		if (object->getShapeCenter().y - object->getSize().y * object->getScale().y / 2 - shift.y > view->getCenter().y + view->getSize().y * 0.5)
+			return true;
+		return false;
+	}
+
+
+
+	////////////////////////////////////////////////////////////////
+
+
+
+	bool isQuittingTheView(GuiObject* object, sf::View* view)
+	{
+		if (object->getShapeCenter().x - object->getSize().x / 2 < view->getCenter().x * object->getScale().x - view->getSize().x * 0.5)
+			return true;
+		if (object->getShapeCenter().x + object->getSize().x / 2 > view->getCenter().x * object->getScale().x + view->getSize().x * 0.5)
+			return true;
+		if (object->getShapeCenter().y - object->getSize().y / 2 < view->getCenter().y * object->getScale().y - view->getSize().y * 0.5)
+			return true;
+		if (object->getShapeCenter().y + object->getSize().y / 2 > view->getCenter().y * object->getScale().y + view->getSize().y * 0.5)
+			return true;
+		return false;
+	}
+
+} // namespace ke
